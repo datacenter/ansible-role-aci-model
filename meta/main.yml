@@ -4,7 +4,7 @@ galaxy_info:
   description: Ansible role to model and deploy Cisco ACI fabrics
   company: Cisco
   license: GPLv3
-  min_ansible_version: 2.3
+  min_ansible_version: 2.4
   platforms:
   - name: All
     versions:
