@@ -1,0 +1,131 @@
+
+fabric01:
+  hosts:
+    apic1:
+      apic_ip: '10.48.22.69'
+      apic_username: admin
+      apic_password: 'ins3965!'
+    apic2:
+      apic_ip: '10.48.22.70'
+      apic_username: admin
+      apic_password: 'ins3965!'
+    apic3:
+      apic_ip: '10.48.22.71'
+      apic_username: admin
+      apic_password: 'ins3965!'
+  vars:
+    aci_login: &aci_login
+      hostname: '{{ apic_ip }}'
+      username: '{{ apic_username }}'
+      password: '{{ apic_password }}'
+      validate_certs: no
+    aci_topology:
+      access_policy:
+      - switch_policy_profile:
+        - name: leaf_105
+          leaf_selector:
+          - name: 105
+            from: 105
+            to: 105
+          interface_selector_profile:
+          - name: leaf_105
+        - name: leaf_106
+          leaf_selector:
+          - name: 106
+            from: 106
+            to: 106
+          interface_selector_profile:
+          - name: leaf_106
+      - interface_policy_lldp:
+        - name: LLDPon
+          receive_state: enabled
+          transmit_state: enabled
+      - interface_policy_port_channel:
+        - name: LACPactive
+          mode: active
+      - interface_policy_policy_group_vpc:
+        - name: router_01
+          lldp: LLDPon
+          port_channel: LACPactive
+          aep: router_01
+      - interface_policy_profile:
+        - name: leaf_105
+          interface_selector:
+          - name: Int22
+            int_card: 1
+            int_to: 22
+            int_from: 22
+            policy_group: router_01
+        - name: leaf_106
+          interface_selector:
+          - name: Int22
+            int_card: 1
+            int_to: 22
+            int_from: 22
+            policy_group: router_01
+      - vlan_pool:
+        - name: router_01
+          alloc: static
+          encap_block:
+          - from: 125
+            to: 125
+      - aep:
+        - name: router_01
+          domain:
+          - name: l3dom-router_01
+      - external_routed_domain:
+        - name: router_01
+          vlan_pool: router_01
+          vlan_pool_alloc: static
+      tenant:
+      - name: Customer01
+        description: Customer01
+        app:
+        - name: Billing
+          epg:
+          - name: web
+            bd: web_bd
+            contract:
+            - name: internet
+              type: consumer
+            - name: web_app
+              type: consumer
+          - name: app
+            bd: app_bd
+            contract:
+            - name: web_app
+              type: provider
+        bd:
+        - name: app_bd
+          subnet: 
+          - name: 10.10.10.1
+            mask: 24
+            scope: private
+          vrf: Customer01
+        - name: web_bd
+          subnet: 
+          - name: 20.20.20.1
+            mask: 24
+            scope: public
+          vrf: Customer01
+          l3out: 
+          - name: l3out
+        vrf:
+        - name: Customer01
+        contract:
+        - name: internet
+          scope: tenant
+          subject:
+          - name: internet
+            filter: 'default'
+        - name: web_app
+          scope: tenant
+          subject:
+          - name: web_app
+            filter: 'default'
+        protocol_policy:
+        - ospf_interface:
+          - name: router_01_ospf
+
+
+# vim: ts=2: sw=2: et

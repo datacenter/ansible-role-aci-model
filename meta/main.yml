@@ -1,0 +1,19 @@
+---
+galaxy_info:
+  author: Ramses Smeyers
+  description: Ansible role to model and deploy Cisco ACI fabrics
+  company: Cisco
+  license: GPLv3
+  min_ansible_version: 2.3
+  platforms:
+  - name: All
+    versions:
+    - all
+  galaxy_tags:
+  - aci
+  - cisco
+  - clouding
+  - datacenter
+  - networking
+  - system
+dependencies: []

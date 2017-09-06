@@ -1,0 +1,48 @@
+---
+aci_model_data:
+  tenant:
+  - name: Example99
+    description: Example99
+    app:
+    - name: Billing
+      epg:
+      - name: web
+        bd: web_bd
+        contract:
+        - name: internet
+          type: consumer
+        - name: web_app
+          type: consumer
+      - name: app
+        bd: app_bd
+        contract:
+        - name: web_app
+          type: provider
+    bd:
+    - name: app_bd
+      subnet:
+      - name: 10.10.10.1
+        mask: 24
+        scope: private
+      vrf: Example99
+    - name: web_bd
+      subnet:
+      - name: 20.20.20.1
+        mask: 24
+        scope: public
+      vrf: Example99
+    vrf:
+    - name: Example99
+    contract:
+    - name: internet
+      scope: tenant
+      subject:
+      - name: internet
+        filter: 'default'
+    - name: web_app
+      scope: tenant
+      subject:
+      - name: web_app
+        filter: 'default'
+
+

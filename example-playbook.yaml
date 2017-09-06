@@ -1,0 +1,12 @@
+
+
+- name: Create ACI model
+  hosts: '*apic1'
+  gather_facts: no
+
+  roles:
+  - role: aci_model
+    aci_model_data: '{{ aci_topology }}'
+    tags: aci_model
+
+# vim: ts=2: sw=2: et

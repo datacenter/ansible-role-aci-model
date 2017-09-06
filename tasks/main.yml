@@ -1,0 +1,253 @@
+- name: Push aci_model
+  vars:
+    aci_login: &aci_login
+      hostname: '{{ apic_ip }}'
+      username: '{{ apic_username }}'
+      password: '{{ apic_password }}'
+      validate_certs: no
+  delegate_to: localhost
+  block:
+  - name: Create Tenant
+    aci_tenant:
+      <<: *aci_login
+      tenant: '{{ item.tenant_name }}'
+      description: '{{ item.tenant_description }}'
+    with_items:
+    - '{{ aci_model_data|aci_listify("tenant") }}'
+  
+  - name: Create VRF
+    aci_vrf:
+      <<: *aci_login
+      tenant: '{{ item.tenant_name }}'
+      vrf_name: '{{ item.tenant_vrf_name }}'
+    with_items:
+    - '{{ aci_model_data|aci_listify("tenant","vrf") }}'
+  
+  - name: Create BDs
+    aci_bd:
+      <<: *aci_login
+      tenant: '{{ item.tenant_name }}'
+      vrf: '{{ item.tenant_bd_vrf }}'
+      bd: '{{ item.tenant_bd_name }}'
+      enable_routing: yes
+    with_items:
+    - '{{ aci_model_data|aci_listify("tenant","bd") }}'
+  
+  - name: Create BD Subnet
+    aci_bd_subnet:
+      <<: *aci_login
+      tenant: '{{ item.tenant_name }}'
+      bd: '{{ item.tenant_bd_name }}'
+      gateway: '{{ item.tenant_bd_subnet_name }}'
+      mask: '{{ item.tenant_bd_subnet_mask }}'
+      scope: '{{ item.tenant_bd_subnet_scope }}'
+    with_items:
+    - '{{ aci_model_data|aci_listify("tenant","bd","subnet") }}'
+  
+  - name: Create APPs
+    aci_ap:
+      <<: *aci_login
+      tenant: '{{ item.tenant_name }}'
+      app_profile: '{{ item.tenant_app_name }}'
+    with_items:
+    - '{{ aci_model_data|aci_listify("tenant","app") }}'
+  
+  - name: Create EPGs
+    aci_epg:
+      <<: *aci_login
+      tenant: '{{ item.tenant_name }}'
+      app_profile: '{{ item.tenant_app_name }}'
+      epg: '{{ item.tenant_app_epg_name }}'
+      bd: '{{ item.tenant_app_epg_bd }}'
+    with_items:
+    - '{{ aci_model_data|aci_listify("tenant","app","epg") }}'
+  
+  - name: Create Contract
+    aci_contract:
+      <<: *aci_login
+      tenant: '{{ item.tenant_name }}'
+      contract: '{{ item.tenant_contract_name }}'
+      scope: '{{ item.tenant_contract_scope }}'
+    with_items:
+    - '{{ aci_model_data|aci_listify("tenant","contract") }}'
+  
+  - name: Create Contract Subject
+    aci_contract_subject:
+      <<: *aci_login
+      tenant: '{{ item.tenant_name }}'
+      contract: '{{ item.tenant_contract_name }}'
+      contract_subject: '{{ item.tenant_contract_subject_name}}'
+      reverse_filter: yes
+    with_items:
+    - '{{ aci_model_data|aci_listify("tenant","contract","subject") }}'
+  
+  - name: Bind Contract Subject to filter
+    aci_contract_subject_to_filter:
+      <<: *aci_login
+      tenant: '{{ item.tenant_name }}'
+      contract: '{{ item.tenant_contract_name }}'
+      contract_subject: '{{ item.tenant_contract_subject_name}}'
+      filter: '{{ item.tenant_contract_subject_filter }}'
+    with_items:
+    - '{{ aci_model_data|aci_listify("tenant","contract","subject") }}'
+  
+  - name: Bind EPG to Contract
+    aci_epg_to_contract:
+      <<: *aci_login
+      tenant: '{{ item.tenant_name }}'
+      app_profile: '{{ item.tenant_app_name }}'
+      epg: '{{ item.tenant_app_epg_name }}'
+      contract: '{{ item.tenant_app_epg_contract_name }}'
+      contract_type: '{{ item.tenant_app_epg_contract_type }}'
+    with_items:
+    - '{{ aci_model_data|aci_listify("tenant","app","epg","contract") }}'
+
+  - name: Create OSPF Interface Profile
+    aci_rest:
+      <<: *aci_login
+      method: post
+      path: '/api/node/mo/uni/tn-{{item.tenant_name}}/ospfIfPol-{{item.tenant_protocol_policy_ospf_interface_name}}.json'
+      content: |
+        '{"ospfIfPol":{"attributes":{"dn":"uni/tn-{{item.tenant_name}}/ospfIfPol-{{item.tenant_protocol_policy_ospf_interface_name}}","name":"{{item.tenant_protocol_policy_ospf_interface_name}}","nwT":"bcast","ctrl":"advert-subnet,mtu-ignore","rn":"ospfIfPol-Test"}}}'
+    with_items:
+    - '{{ aci_model_data|aci_listify("tenant","protocol_policy","ospf_interface") }}'
+    delegate_to: localhost
+  
+  - name: Associate BDs to L3out
+    aci_bd_to_l3out:
+      <<: *aci_login
+      tenant: '{{ item.tenant_name }}'
+      bd: '{{ item.tenant_bd_name }}'
+      l3out: '{{ item.tenant_bd_l3out_name }}'
+    with_items:
+    - '{{ aci_model_data|aci_listify("tenant","bd","l3out") }}'
+  
+  - name: Create Switch Policy Profile
+    aci_rest:
+      <<: *aci_login
+      method: post
+      path: '/api/node/mo/uni/infra/nprof-{{item.access_policy_switch_policy_profile_name}}.json'
+      content: |
+        '{"infraNodeP":{"attributes":{"descr":"","dn":"uni/infra/nprof-{{item.access_policy_switch_policy_profile_name}}","name":"{{item.access_policy_switch_policy_profile_name}}","ownerKey":"","ownerTag":""}}}'
+    with_items:
+    - '{{ aci_model_data|aci_listify("access_policy","switch_policy_profile") }}'
+  
+  - name: Add leaf selectors to switch policy profile
+    aci_rest:
+      <<: *aci_login
+      method: post
+      path: '/api/node/mo/uni/infra/nprof-{{item.access_policy_switch_policy_profile_name}}.json'
+      content: |
+        '{"infraNodeP":{"attributes":{"descr":"","dn":"uni/infra/nprof-{{item.access_policy_switch_policy_profile_name}}","name":"{{item.access_policy_switch_policy_profile_name}}","ownerKey":"","ownerTag":""},"children":[{"infraLeafS":{"attributes":{"descr":"","name":"{{item.access_policy_switch_policy_profile_leaf_selector_name}}","ownerKey":"","ownerTag":"","type":"range"},"children":[{"infraNodeBlk":{"attributes":{"descr":"","from_":"{{item.access_policy_switch_policy_profile_leaf_selector_from}}","name":"{{item.access_policy_switch_policy_profile_leaf_selector_name}}","to_":"{{item.access_policy_switch_policy_profile_leaf_selector_to}}"}}}]}}]}}'
+    with_items:
+    - '{{ aci_model_data|aci_listify("access_policy","switch_policy_profile","leaf_selector") }}'
+  
+  - name: Add interface selector profile to switch policy profile
+    aci_rest:
+      <<: *aci_login
+      method: post
+      path: '/api/node/mo/uni/infra/nprof-{{item.access_policy_switch_policy_profile_name}}.json'
+      content: |
+        '{"infraNodeP":{"attributes":{"descr":"","dn":"uni/infra/nprof-{{item.access_policy_switch_policy_profile_name}}","name":"{{item.access_policy_switch_policy_profile_name}}","ownerKey":"","ownerTag":""},"children":[{"infraRsAccPortP":{"attributes":{"tDn":"uni/infra/accportprof-{{item.access_policy_switch_policy_profile_interface_selector_profile_name}}"}}}]}}'
+    with_items:
+    - '{{ aci_model_data|aci_listify("access_policy","switch_policy_profile","interface_selector_profile") }}'
+  
+  - name: Add interface policy profile
+    aci_rest:
+      <<: *aci_login
+      method: post
+      path: '/api/node/mo/uni/infra/accportprof-{{item.access_policy_interface_policy_profile_name}}.json'
+      content: |
+        '{"infraAccPortP":{"attributes":{"descr":"","dn":"uni/infra/accportprof-{{item.access_policy_interface_policy_profile_name}}","name":"{{item.access_policy_interface_policy_profile_name}}","ownerKey":"","ownerTag":""}}}'
+    with_items:
+    - '{{ aci_model_data|aci_listify("access_policy","interface_policy_profile") }}'
+  
+  - name: Add interface selector to interface policy profile
+    aci_rest:
+      <<: *aci_login
+      method: post
+      path: '/api/node/mo/uni/infra/accportprof-{{item.access_policy_interface_policy_profile_name}}.json'
+      content: |
+        '{"infraAccPortP":{"attributes":{"descr":"","dn":"uni/infra/accportprof-{{item.access_policy_interface_policy_profile_name}}","name":"{{item.access_policy_interface_policy_profile_name}}","ownerKey":"","ownerTag":""},"children":[{"infraHPortS":{"attributes":{"descr":"","name":"{{item.access_policy_interface_policy_profile_interface_selector_name}}","ownerKey":"","ownerTag":"","type":"range"},"children":[{"infraRsAccBaseGrp":{"attributes":{"fexId":"101","tDn":"uni/infra/funcprof/accbundle-{{item.access_policy_interface_policy_profile_interface_selector_policy_group}}"}}},{"infraPortBlk":{"attributes":{"descr":"","fromCard":"{{item.access_policy_interface_policy_profile_interface_selector_int_card}}","fromPort":"{{item.access_policy_interface_policy_profile_interface_selector_int_from}}","name":"block2","toCard":"{{item.access_policy_interface_policy_profile_interface_selector_int_card}}","toPort":"{{item.access_policy_interface_policy_profile_interface_selector_int_to}}"}}}]}}]}}'
+    with_items:
+    - '{{ aci_model_data|aci_listify("access_policy","interface_policy_profile","interface_selector") }}'
+  
+  - name: Create LLDP interface policy
+    aci_intf_policy_lldp:
+      <<: *aci_login
+      lldp_policy: '{{ item.access_policy_interface_policy_lldp_name }}'
+      receive_state: '{{ item.access_policy_interface_policy_lldp_receive_state }}'
+      transmit_state: '{{ item.access_policy_interface_policy_lldp_transmit_state }}'
+    with_items:
+    - '{{ aci_model_data|aci_listify("access_policy","interface_policy_lldp") }}'
+  
+  - name: Create port channel policies
+    aci_intf_policy_port_channel:
+      <<: *aci_login
+      port_channel: '{{ item.access_policy_interface_policy_port_channel_name }}'
+      mode: '{{ item.access_policy_interface_policy_port_channel_mode }}'
+    with_items:
+    - '{{ aci_model_data|aci_listify("access_policy","interface_policy_port_channel") }}'
+  
+  - name: Add an interface policy policy group
+    aci_rest:
+      <<: *aci_login
+      method: post
+      path: '/api/node/mo/uni/infra/funcprof/accbundle-{{ item.access_policy_interface_policy_policy_group_vpc_name}}.json'
+      content: |
+        '{"infraAccBndlGrp":{"attributes":{"descr":"","dn":"uni/infra/funcprof/accbundle-{{ item.access_policy_interface_policy_policy_group_vpc_name}}","lagT":"node","name":"{{ item.access_policy_interface_policy_policy_group_vpc_name}}","ownerKey":"","ownerTag":""},"children":[{"infraRsL2IfPol":{"attributes":{"tnL2IfPolName":""}}},{"infraRsHIfPol":{"attributes":{"tnFabricHIfPolName":""}}},{"infraRsL2PortSecurityPol":{"attributes":{"tnL2PortSecurityPolName":""}}},{"infraRsQosPfcIfPol":{"attributes":{"tnQosPfcIfPolName":""}}},{"infraRsMonIfInfraPol":{"attributes":{"tnMonInfraPolName":""}}},{"infraRsStpIfPol":{"attributes":{"tnStpIfPolName":""}}},{"infraRsQosSdIfPol":{"attributes":{"tnQosSdIfPolName":""}}},{"infraRsAttEntP":{"attributes":{"tDn":"uni/infra/attentp-{{ item.access_policy_interface_policy_policy_group_vpc_aep}}"}}},{"infraRsMcpIfPol":{"attributes":{"tnMcpIfPolName":""}}},{"infraRsLacpPol":{"attributes":{"tnLacpLagPolName":"{{ item.access_policy_interface_policy_policy_group_vpc_port_channel}}"}}},{"infraRsQosDppIfPol":{"attributes":{"tnQosDppPolName":""}}},{"infraRsQosIngressDppIfPol":{"attributes":{"tnQosDppPolName":""}}},{"infraRsQosEgressDppIfPol":{"attributes":{"tnQosDppPolName":""}}},{"infraRsStormctrlIfPol":{"attributes":{"tnStormctrlIfPolName":""}}},{"infraRsLldpIfPol":{"attributes":{"tnLldpIfPolName":"{{ item.access_policy_interface_policy_policy_group_vpc_lldp}}"}}},{"infraRsFcIfPol":{"attributes":{"tnFcIfPolName":""}}},{"infraRsCdpIfPol":{"attributes":{"tnCdpIfPolName":""}}}]}}'
+    with_items:
+    - '{{ aci_model_data|aci_listify("access_policy","interface_policy_policy_group_vpc") }}'
+  
+  - name: Add VLAN pool
+    aci_rest:
+      <<: *aci_login
+      method: post
+      path: '/api/node/mo/uni/infra/vlanns-[{{item.access_policy_vlan_pool_name}}]-{{item.access_policy_vlan_pool_alloc}}.json'
+      content: |
+        '{"fvnsVlanInstP":{"attributes":{"allocMode":"{{item.access_policy_vlan_pool_alloc}}","descr":"","dn":"uni/infra/vlanns-[{{item.access_policy_vlan_pool_name}}]-{{item.access_policy_vlan_pool_alloc}}","name":"{{item.access_policy_vlan_pool_name}}","ownerKey":"","ownerTag":""}}}'
+    with_items:
+    - '{{ aci_model_data|aci_listify("access_policy","vlan_pool") }}'
+  
+  - name: Add encaps to VLAN pool
+    aci_rest:
+      <<: *aci_login
+      method: post
+      path: '/api/node/mo/uni/infra/vlanns-[{{item.access_policy_vlan_pool_name}}]-{{item.access_policy_vlan_pool_alloc}}.json'
+      content: |
+        '{"fvnsVlanInstP":{"attributes":{"allocMode":"{{item.access_policy_vlan_pool_alloc}}","descr":"","dn":"uni/infra/vlanns-[{{item.access_policy_vlan_pool_name}}]-{{item.access_policy_vlan_pool_alloc}}","name":"{{item.access_policy_vlan_pool_name}}","ownerKey":"","ownerTag":""},"children":[{"fvnsEncapBlk":{"attributes":{"allocMode":"inherit","descr":"","from":"vlan-{{item.access_policy_vlan_pool_encap_block_from}}","name":"","to":"vlan-{{item.access_policy_vlan_pool_encap_block_to}}"}}}]}}'
+    with_items:
+    - '{{ aci_model_data|aci_listify("access_policy","vlan_pool","encap_block") }}'
+  
+  - name: Add aeps
+    aci_rest:
+      <<: *aci_login
+      method: post
+      path: '/api/node/mo/uni/infra.json'
+      content: |
+        '{"infraAttEntityP":{"attributes":{"descr":"","dn":"uni/infra/attentp-{{item.access_policy_aep_name}}","name":"{{item.access_policy_aep_name}}","ownerKey":"","ownerTag":""}}}'
+    with_items:
+    - '{{ aci_model_data|aci_listify("access_policy","aep") }}'
+  
+  - name: Add Router Domain
+    aci_rest:
+      <<: *aci_login
+      method: post
+      path: '/api/node/mo/uni/l3dom-{{item.access_policy_external_routed_domain_name}}.json'
+      content: |
+        '{"l3extDomP":{"attributes":{"dn":"uni/l3dom-{{item.access_policy_external_routed_domain_name}}","name":"{{item.access_policy_external_routed_domain_name}}","ownerKey":"","ownerTag":""},"children":[{"infraRsVlanNs":{"attributes":{"tDn":"uni/infra/vlanns-[{{item.access_policy_external_routed_domain_vlan_pool}}]-{{item.access_policy_external_routed_domain_vlan_pool_alloc}}"}}}]}}'
+    with_items:
+    - '{{ aci_model_data|aci_listify("access_policy","external_routed_domain") }}'
+  
+  - name: Link AEP to domain
+    aci_rest:
+      <<: *aci_login
+      method: post
+      path: '/api/node/mo/uni/infra/attentp-{{item.access_policy_aep_name}}.json'
+      content: |
+        '{"infraRsDomP":{"attributes":{"childAction":"","dn":"uni/infra/attentp-{{item.access_policy_aep_name}}/rsdomP-[uni/{{item.access_policy_aep_domain_name}}]","tDn":"uni/{{item.access_policy_aep_domain_name}}"}}}'
+    with_items:
+    - '{{ aci_model_data|aci_listify("access_policy","aep", "domain") }}'
+  
+  
+# vim: ts=2: sw=2: et
