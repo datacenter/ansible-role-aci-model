@@ -171,7 +171,7 @@
       method: post
       path: '/api/node/mo/uni/infra/accportprof-{{item.access_policy_interface_policy_profile_name}}.json'
       content: |
-        '{"infraAccPortP":{"attributes":{"descr":"","dn":"uni/infra/accportprof-{{item.access_policy_interface_policy_profile_name}}","name":"{{item.access_policy_interface_policy_profile_name}}","ownerKey":"","ownerTag":""},"children":[{"infraHPortS":{"attributes":{"descr":"","name":"{{item.access_policy_interface_policy_profile_interface_selector_name}}","ownerKey":"","ownerTag":"","type":"range"},"children":[{"infraRsAccBaseGrp":{"attributes":{"fexId":"101","tDn":"uni/infra/funcprof/accbundle-{{item.access_policy_interface_policy_profile_interface_selector_policy_group}}"}}},{"infraPortBlk":{"attributes":{"descr":"","fromCard":"{{item.access_policy_interface_policy_profile_interface_selector_int_card}}","fromPort":"{{item.access_policy_interface_policy_profile_interface_selector_int_from}}","name":"block2","toCard":"{{item.access_policy_interface_policy_profile_interface_selector_int_card}}","toPort":"{{item.access_policy_interface_policy_profile_interface_selector_int_to}}"}}}]}}]}}'
+        '{"infraAccPortP":{"attributes":{"descr":"","dn":"uni/infra/accportprof-{{item.access_policy_interface_policy_profile_name}}","name":"{{item.access_policy_interface_policy_profile_name}}","ownerKey":"","ownerTag":""},"children":[{"infraHPortS":{"attributes":{"descr":"","name":"{{item.access_policy_interface_policy_profile_interface_selector_name}}","ownerKey":"","ownerTag":"","type":"range"},"children":[{"infraRsAccBaseGrp":{"attributes":{"fexId":"101","tDn":"uni/infra/funcprof/{{item.access_policy_interface_policy_profile_interface_selector_policy_group_type}}-{{item.access_policy_interface_policy_profile_interface_selector_policy_group}}"}}},{"infraPortBlk":{"attributes":{"descr":"","fromCard":"{{item.access_policy_interface_policy_profile_interface_selector_int_card}}","fromPort":"{{item.access_policy_interface_policy_profile_interface_selector_int_from}}","name":"block2","toCard":"{{item.access_policy_interface_policy_profile_interface_selector_int_card}}","toPort":"{{item.access_policy_interface_policy_profile_interface_selector_int_to}}"}}}]}}]}}'
     with_items:
     - '{{ aci_model_data|aci_listify("access_policy","interface_policy_profile","interface_selector") }}'
   
@@ -192,7 +192,7 @@
     with_items:
     - '{{ aci_model_data|aci_listify("access_policy","interface_policy_port_channel") }}'
   
-  - name: Add an interface policy policy group
+  - name: Add an interface policy policy group VPC
     aci_rest:
       <<: *aci_login
       method: post
@@ -201,6 +201,16 @@
         '{"infraAccBndlGrp":{"attributes":{"descr":"","dn":"uni/infra/funcprof/accbundle-{{ item.access_policy_interface_policy_policy_group_vpc_name}}","lagT":"node","name":"{{ item.access_policy_interface_policy_policy_group_vpc_name}}","ownerKey":"","ownerTag":""},"children":[{"infraRsL2IfPol":{"attributes":{"tnL2IfPolName":""}}},{"infraRsHIfPol":{"attributes":{"tnFabricHIfPolName":""}}},{"infraRsL2PortSecurityPol":{"attributes":{"tnL2PortSecurityPolName":""}}},{"infraRsQosPfcIfPol":{"attributes":{"tnQosPfcIfPolName":""}}},{"infraRsMonIfInfraPol":{"attributes":{"tnMonInfraPolName":""}}},{"infraRsStpIfPol":{"attributes":{"tnStpIfPolName":""}}},{"infraRsQosSdIfPol":{"attributes":{"tnQosSdIfPolName":""}}},{"infraRsAttEntP":{"attributes":{"tDn":"uni/infra/attentp-{{ item.access_policy_interface_policy_policy_group_vpc_aep}}"}}},{"infraRsMcpIfPol":{"attributes":{"tnMcpIfPolName":""}}},{"infraRsLacpPol":{"attributes":{"tnLacpLagPolName":"{{ item.access_policy_interface_policy_policy_group_vpc_port_channel}}"}}},{"infraRsQosDppIfPol":{"attributes":{"tnQosDppPolName":""}}},{"infraRsQosIngressDppIfPol":{"attributes":{"tnQosDppPolName":""}}},{"infraRsQosEgressDppIfPol":{"attributes":{"tnQosDppPolName":""}}},{"infraRsStormctrlIfPol":{"attributes":{"tnStormctrlIfPolName":""}}},{"infraRsLldpIfPol":{"attributes":{"tnLldpIfPolName":"{{ item.access_policy_interface_policy_policy_group_vpc_lldp}}"}}},{"infraRsFcIfPol":{"attributes":{"tnFcIfPolName":""}}},{"infraRsCdpIfPol":{"attributes":{"tnCdpIfPolName":""}}}]}}'
     with_items:
     - '{{ aci_model_data|aci_listify("access_policy","interface_policy_policy_group_vpc") }}'
+  
+  - name: Add an interface policy policy group Access
+    aci_rest:
+      <<: *aci_login
+      method: post
+      path: '/api/node/mo/uni/infra/funcprof/accportgrp-{{ item.access_policy_interface_policy_policy_group_access_name}}.json'
+      content: |
+        '{"infraAccPortGrp":{"attributes":{"descr":"","dn":"uni/infra/funcprof/accportgrp-{{ item.access_policy_interface_policy_policy_group_access_name}}","name":"{{ item.access_policy_interface_policy_policy_group_access_name}}","ownerKey":"","ownerTag":""},"children":[{"infraRsL2IfPol":{"attributes":{"tnL2IfPolName":""}}},{"infraRsHIfPol":{"attributes":{"tnFabricHIfPolName":""}}},{"infraRsL2PortSecurityPol":{"attributes":{"tnL2PortSecurityPolName":""}}},{"infraRsQosPfcIfPol":{"attributes":{"tnQosPfcIfPolName":""}}},{"infraRsMonIfInfraPol":{"attributes":{"tnMonInfraPolName":""}}},{"infraRsStpIfPol":{"attributes":{"tnStpIfPolName":""}}},{"infraRsQosSdIfPol":{"attributes":{"tnQosSdIfPolName":""}}},{"infraRsAttEntP":{"attributes":{"tDn":"uni/infra/attentp-{{ item.access_policy_interface_policy_policy_group_access_aep}}"}}},{"infraRsMcpIfPol":{"attributes":{"tnMcpIfPolName":""}}},{"infraRsQosDppIfPol":{"attributes":{"tnQosDppPolName":""}}},{"infraRsQosIngressDppIfPol":{"attributes":{"tnQosDppPolName":""}}},{"infraRsQosEgressDppIfPol":{"attributes":{"tnQosDppPolName":""}}},{"infraRsStormctrlIfPol":{"attributes":{"tnStormctrlIfPolName":""}}},{"infraRsLldpIfPol":{"attributes":{"tnLldpIfPolName":"{{ item.access_policy_interface_policy_policy_group_access_lldp}}"}}},{"infraRsFcIfPol":{"attributes":{"tnFcIfPolName":""}}},{"infraRsCdpIfPol":{"attributes":{"tnCdpIfPolName":""}}}]}}'
+    with_items:
+    - '{{ aci_model_data|aci_listify("access_policy","interface_policy_policy_group_access") }}'
   
   - name: Add VLAN pool
     aci_rest:
@@ -242,6 +252,16 @@
     with_items:
     - '{{ aci_model_data|aci_listify("access_policy","external_routed_domain") }}'
   
+  - name: Add Physical Domain
+    aci_rest:
+      <<: *aci_login
+      method: post
+      path: '/api/node/mo/uni/phys-{{item.access_policy_physical_domain_name}}.json'
+      content: |
+        '{"physDomP":{"attributes":{"dn":"uni/phys-{{item.access_policy_physical_domain_name}}","name":"{{item.access_policy_physical_domain_name}}","ownerKey":"","ownerTag":""},"children":[{"infraRsVlanNs":{"attributes":{"tDn":"uni/infra/vlanns-[{{item.access_policy_physical_domain_vlan_pool}}]-{{item.access_policy_physical_domain_vlan_pool_alloc}}"}}}]}}'
+    with_items:
+    - '{{ aci_model_data|aci_listify("access_policy","physical_domain") }}'
+  
   - name: Link AEP to domain
     aci_rest:
       <<: *aci_login
@@ -251,6 +271,40 @@
         '{"infraRsDomP":{"attributes":{"childAction":"","dn":"uni/infra/attentp-{{item.access_policy_aep_name}}/rsdomP-[uni/{{item.access_policy_aep_domain_name}}]","tDn":"uni/{{item.access_policy_aep_domain_name}}"}}}'
     with_items:
     - '{{ aci_model_data|aci_listify("access_policy","aep", "domain") }}'
+
+  - name: Create Static Path
+    aci_rest:
+      <<: *aci_login
+      method: post
+      path: '/api/node/mo/uni/tn-{{item.tenant_name}}/ap-{{item.tenant_app_name}}/epg-{{item.tenant_app_epg_name}}.json'
+      content: |
+        '{"fvRsPathAtt":{"attributes":{"descr":"","dn":"uni/tn-{{item.tenant_name}}/ap-{{item.tenant_app_name}}/epg-{{item.tenant_app_epg_name}}/rspathAtt-[{{item.tenant_app_epg_static_path_path}}]","encap":"{{item.tenant_app_epg_static_path_encap}}","instrImedcy":"lazy","mode":"{{item.tenant_app_epg_static_path_mode}}","primaryEncap":"unknown","tDn":"{{item.tenant_app_epg_static_path_path}}"}}}'
+    with_items:
+    - '{{ aci_model_data|aci_listify("tenant","app","epg","static_path") }}'
+
+
+  - name: Create Virtual Port Channel
+    aci_rest:
+      <<: *aci_login
+      method: post
+      path: '/api/node/mo/uni/fabric/protpol/expgep-{{item.access_policy_switch_policy_virtual_port_channel_name}}.json'
+      content: |
+        '{"fabricExplicitGEp":{"attributes":{"dn":"uni/fabric/protpol/expgep-{{item.access_policy_switch_policy_virtual_port_channel_name}}","name":"{{item.access_policy_switch_policy_virtual_port_channel_name}}","id":"{{item.access_policy_switch_policy_virtual_port_channel_id}}","rn":"expgep-{{item.access_policy_switch_policy_virtual_port_channel_name}}"},"children":[{"fabricNodePEp":{"attributes":{"dn":"uni/fabric/protpol/expgep-{{item.access_policy_switch_policy_virtual_port_channel_name}}/nodepep-{{item.access_policy_switch_policy_virtual_port_channel_switch1}}","id":"{{item.access_policy_switch_policy_virtual_port_channel_switch1}}","rn":"nodepep-{{item.access_policy_switch_policy_virtual_port_channel_switch1}}"}}},{"fabricNodePEp":{"attributes":{"dn":"uni/fabric/protpol/expgep-{{item.access_policy_switch_policy_virtual_port_channel_name}}/nodepep-{{item.access_policy_switch_policy_virtual_port_channel_switch2}}","id":"{{item.access_policy_switch_policy_virtual_port_channel_switch2}}","rn":"nodepep-{{item.access_policy_switch_policy_virtual_port_channel_switch2}}"},}}]}}'
+    with_items:
+    - '{{ aci_model_data|aci_listify("access_policy","switch_policy_virtual_port_channel") }}'
+
+
+  - name: Bind EPGs to Domain
+    aci_epg_to_domain:
+      <<: *aci_login
+      tenant: '{{ item.tenant_name }}'
+      app_profile: '{{ item.tenant_app_name }}'
+      epg: '{{ item.tenant_app_epg_name }}'
+      domain: '{{ item.tenant_app_epg_domain_name }}'
+      domain_type: '{{ item.tenant_app_epg_domain_type }}'
+    with_items:
+    - '{{ aci_model_data|aci_listify("tenant","app","epg","domain") }}'
+      
   
   
 # vim: ts=2: sw=2: et

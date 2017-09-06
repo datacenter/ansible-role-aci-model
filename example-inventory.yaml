@@ -21,21 +21,33 @@ fabric01:
       validate_certs: no
     aci_topology:
       access_policy:
+      - switch_policy_virtual_port_channel:
+        - name: '997_998'
+          id: 997
+          switch1: 997
+          switch2: 998
       - switch_policy_profile:
-        - name: leaf_105
+        - name: leaf_997
           leaf_selector:
-          - name: 105
-            from: 105
-            to: 105
+          - name: 997
+            from: 997
+            to: 997
           interface_selector_profile:
-          - name: leaf_105
-        - name: leaf_106
+          - name: leaf_997
+        - name: leaf_998
           leaf_selector:
-          - name: 106
-            from: 106
-            to: 106
+          - name: 998
+            from: 998
+            to: 998
           interface_selector_profile:
-          - name: leaf_106
+          - name: leaf_998
+        - name: leaf_997_998
+          leaf_selector:
+          - name: '997_998'
+            from: 997
+            to: 998
+          interface_selector_profile:
+          - name: leaf_997_998
       - interface_policy_lldp:
         - name: LLDPon
           receive_state: enabled
@@ -44,41 +56,73 @@ fabric01:
         - name: LACPactive
           mode: active
       - interface_policy_policy_group_vpc:
-        - name: router_01
+        - name: 99_router_01
           lldp: LLDPon
           port_channel: LACPactive
-          aep: router_01
+          aep: 99_router_01
+      - interface_policy_policy_group_access:
+        - name: 99_baremetal_01
+          lldp: LLDPon
+          aep: 99_baremetal_01
       - interface_policy_profile:
-        - name: leaf_105
+        - name: leaf_997_998
           interface_selector:
-          - name: Int22
+          - name: Router01
             int_card: 1
             int_to: 22
             int_from: 22
-            policy_group: router_01
-        - name: leaf_106
+            policy_group: 99_router_01
+            policy_group_type: accbundle
+        - name: leaf_997
           interface_selector:
-          - name: Int22
+          - name: Server01
             int_card: 1
-            int_to: 22
-            int_from: 22
-            policy_group: router_01
+            int_to: 33
+            int_from: 33
+            policy_group: 99_baremetal_01
+            policy_group_type: accportgrp
+          - name: Server02
+            int_card: 1
+            int_to: 34
+            int_from: 34
+            policy_group: 99_baremetal_01
+            policy_group_type: accportgrp
+        - name: leaf_998
+          interface_selector:
+          - name: Server02
+            int_card: 1
+            int_to: 35
+            int_from: 35
+            policy_group: 99_baremetal_01
+            policy_group_type: accportgrp
       - vlan_pool:
-        - name: router_01
+        - name: 99_router_01
           alloc: static
           encap_block:
-          - from: 125
-            to: 125
+          - from: 201
+            to: 201
+        - name: 99_baremetal_01
+          alloc: static
+          encap_block:
+          - from: 101
+            to: 102
       - aep:
-        - name: router_01
+        - name: 99_router_01
           domain:
-          - name: l3dom-router_01
+          - name: l3dom-99_router_01
+        - name: 99_baremetal_01
+          domain:
+          - name: phys-99_baremetal_01
       - external_routed_domain:
-        - name: router_01
-          vlan_pool: router_01
+        - name: 99_router_01
+          vlan_pool: 99_router_01
+          vlan_pool_alloc: static
+      - physical_domain:
+        - name: 99_baremetal_01
+          vlan_pool: 99_baremetal_01
           vlan_pool_alloc: static
       tenant:
-      - name: Customer01
+      - name: 99_Customer01
         description: Customer01
         app:
         - name: Billing
@@ -90,11 +134,31 @@ fabric01:
               type: consumer
             - name: web_app
               type: consumer
+            static_path:
+            - pod: 1
+              path: 'topology/pod-1/paths-997/pathep-[eth1/33]'
+              encap: 'vlan-101'
+              mode: regular
+            - pod: 1
+              path: 'topology/pod-1/paths-997/pathep-[eth1/34]'
+              encap: 'vlan-101'
+              mode: native
+            domain:
+            - name: 99_baremetal_01
+              type: phys
           - name: app
             bd: app_bd
             contract:
             - name: web_app
               type: provider
+            static_path:
+            - pod: 1
+              path: 'topology/pod-1/paths-998/pathep-[eth1/35]'
+              encap: 'vlan-102'
+              mode: untagged
+            domain:
+            - name: 99_baremetal_01
+              type: phys
         bd:
         - name: app_bd
           subnet: 
