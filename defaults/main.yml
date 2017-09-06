@@ -38,11 +38,9 @@ aci_model_data:
       scope: tenant
       subject:
       - name: internet
-        filter: 'default'
+        filter: default
     - name: web_app
       scope: tenant
       subject:
       - name: web_app
-        filter: 'default'
-
-
+        filter: default
