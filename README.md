@@ -12,7 +12,9 @@ You need to configure your Ansible to find this Jinja2 filter. There are two way
 
  1. Configure Ansible so it looks for the custom filter plugin:
 
+      ```ini
       filter_plugin = /home/ansible/datacenter.aci-model/plugins/filter
+      ```
 
  2. Copy the filter plugin (*plugins/filter/aci.py*) into your designated filter plugin directory
 
@@ -21,62 +23,65 @@ You need to configure your Ansible to find this Jinja2 filter. There are two way
 
 Available variables are listed below, along with the default values:
 
-    aci_model_data:
-      tenant:
-      - name: Example99
-        description: Example99
-        app:
-        - name: Billing
-          epg:
-          - name: web
-            bd: web_bd
-            contract:
-            - name: internet
-              type: consumer
-            - name: web_app
-              type: consumer
-          - name: app
-            bd: app_bd
-            contract:
-            - name: web_app
-              type: provider
-    bd:
-    - name: app_bd
-      subnet:
-      - name: 10.10.10.1
-        mask: 24
-        scope: private
-      vrf: Example99
-    - name: web_bd
-      subnet:
-      - name: 20.20.20.1
-        mask: 24
-        scope: public
-      vrf: Example99
-    vrf:
-    - name: Example99
-    contract:
+```yaml
+aci_model_data:
+  tenant:
+  - name: Example99
+    description: Example99
+    app:
+    - name: Billing
+      epg:
+      - name: web
+        bd: web_bd
+        contract:
+        - name: internet
+          type: consumer
+        - name: web_app
+          type: consumer
+      - name: app
+        bd: app_bd
+        contract:
+        - name: web_app
+          type: provider
+  bd:
+  - name: app_bd
+    subnet:
+    - name: 10.10.10.1
+      mask: 24
+      scope: private
+    vrf: Example99
+  - name: web_bd
+    subnet:
+    - name: 20.20.20.1
+      mask: 24
+      scope: public
+    vrf: Example99
+  vrf:
+  - name: Example99
+  contract:
+  - name: internet
+    scope: tenant
+    subject:
     - name: internet
-      scope: tenant
-      subject:
-      - name: internet
-        filter: default
+      filter: default
+  - name: web_app
+    scope: tenant
+    subject:
     - name: web_app
-      scope: tenant
-      subject:
-      - name: web_app
-        filter: default
+      filter: default
+```
+A more comprehensive example is available from: [example-inventory.yaml](example-inventory.yaml)
 
-      
+
 ## Example playbook
 
-    - hosts: *apic1
-      gather_facts: no
-
-      roles:
-      - role: aci-model
-        aci_model_data: '{{ inventory.aci_topology }}'
-
+```yaml
+- hosts: *apic1
+  gather_facts: no
+  roles:
+  - role: aci-model
+    aci_model_data: '{{ inventory.aci_topology }}'
+```
 
 ## Notes
 
