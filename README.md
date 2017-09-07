@@ -21,7 +21,7 @@ You need to configure your Ansible to find this Jinja2 filter. There are two way
 
 ## Role variables
 
-Available variables are listed below, along with the default values:
+The following is an example of an inventory for this role:
 
 ```yaml
 aci_model_data:
