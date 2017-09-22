@@ -3,6 +3,8 @@ A comprehensive Ansible role to model and deploy Cisco ACI fabrics.
 
 This role provides an abstraction layer that is convenient to use. By providing your required configuration (a structured dataset) in your inventory this role will perform the needed actions to ensure that configuration is deployd on your ACI infrastructure.
 
+Using this role you can easily set up demo environment, maintain a lab or use it as the basis for your in-house ACI infrastructure. It can help you understand how ACI works while prototyping and testing. No prior Ansible or ACI knowledge is required to get started.
+
 
 ## Requirements
 This role requires the **aci_rest** module and the standard set of ACI modules from Ansible v2.4.
