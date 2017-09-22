@@ -3,7 +3,7 @@
 
   vars:
     aci_login: &aci_login
-      hostname: '{{ apic_ip }}'
+      hostname: '{{ apic_host }}'
       username: '{{ apic_username }}'
       password: '{{ apic_password }}'
       use_proxy: '{{ apic_use_proxy }}'
@@ -165,7 +165,7 @@
     with_items:
     - '{{ aci_model_data|aci_listify("access_policy","interface_policy_profile","interface_selector") }}'
 
-  - name: Create LLDP interface policy
+  - name: Create LLDP interface policies
     aci_intf_policy_lldp:
       <<: *aci_login
       lldp_policy: '{{ item.access_policy_interface_policy_lldp_name }}'
@@ -220,7 +220,7 @@
     with_items:
     - '{{ aci_model_data|aci_listify("access_policy","vlan_pool","encap_block") }}'
 
-  - name: Add aeps
+  - name: Add AEPs
     aci_rest:
       <<: *aci_login
       path: /api/node/mo/uni/infra.json
@@ -230,7 +230,7 @@
     with_items:
     - '{{ aci_model_data|aci_listify("access_policy","aep") }}'
 
-  - name: Add Router Domain
+  - name: Add Router Domains
     aci_rest:
       <<: *aci_login
       path: /api/node/mo/uni/l3dom-{{ item.access_policy_external_routed_domain_name }}.json
@@ -240,7 +240,7 @@
     with_items:
     - '{{ aci_model_data|aci_listify("access_policy","external_routed_domain") }}'
 
-  - name: Add Physical Domain
+  - name: Add Physical Domains
     aci_rest:
       <<: *aci_login
       path: /api/node/mo/uni/phys-{{ item.access_policy_physical_domain_name }}.json
@@ -250,7 +250,7 @@
     with_items:
     - '{{ aci_model_data|aci_listify("access_policy","physical_domain") }}'
 
-  - name: Link AEP to domain
+  - name: Link AEPs to domains
     aci_rest:
       <<: *aci_login
       path: /api/node/mo/uni/infra/attentp-{{ item.access_policy_aep_name }}.json
@@ -260,7 +260,7 @@
     with_items:
     - '{{ aci_model_data|aci_listify("access_policy","aep", "domain") }}'
 
-  - name: Create Static Path
+  - name: Create static path
     aci_rest:
       <<: *aci_login
       path: /api/node/mo/uni/tn-{{ item.tenant_name }}/ap-{{ item.tenant_app_name }}/epg-{{ item.tenant_app_epg_name }}.json
@@ -280,7 +280,7 @@
     with_items: '{{ aci_model_data|aci_listify("access_policy","switch_policy_virtual_port_channel") }}'
 
 
-  - name: Bind EPGs to Domain
+  - name: Bind EPGs to Domains
     aci_epg_to_domain:
       <<: *aci_login
       tenant: '{{ item.tenant_name }}'

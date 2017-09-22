@@ -1,4 +1,8 @@
 ---
+apic_username: admin
+apic_use_proxy: no
+apic_validate_certs: yes
+
 aci_model_data:
   tenant:
   - name: Example99
