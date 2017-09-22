@@ -18,57 +18,67 @@ You need to configure your Ansible to find this Jinja2 filter. There are two way
 
  2. Copy the filter plugin (*plugins/filter/aci.py*) into your designated filter plugin directory
 
+Because of its general usefulness, we are looking into making this *aci_listify* filter more genericand part of the default Ansible filters.
+
 
 ## Role variables
 
-The following is an example of an inventory for this role:
+The role accepts various variables, including:
+
+- apic_host
+- apic_username (defaults to 'admin')
+- apic_password
+- apic_use_proxy (defaults to false)
+- apic_validate_certs (defaults to true)
+
+The following is an example of a topology defined in your inventory you can use with this role:
 
 ```yaml
-aci_model_data:
-  tenant:
-  - name: Example99
-    description: Example99
-    app:
-    - name: Billing
-      epg:
-      - name: web
-        bd: web_bd
-        contract:
-        - name: internet
-          type: consumer
-        - name: web_app
-          type: consumer
-      - name: app
-        bd: app_bd
-        contract:
-        - name: web_app
-          type: provider
-  bd:
-  - name: app_bd
-    subnet:
-    - name: 10.10.10.1
-      mask: 24
-      scope: private
-    vrf: Example99
-  - name: web_bd
-    subnet:
-    - name: 20.20.20.1
-      mask: 24
-      scope: public
-    vrf: Example99
-  vrf:
-  - name: Example99
-  contract:
-  - name: internet
-    scope: tenant
-    subject:
+  aci_topology:
+    tenant:
+    - name: Example99
+      description: Example99
+      app:
+      - name: Billing
+        epg:
+        - name: web
+          bd: web_bd
+          contract:
+          - name: internet
+            type: consumer
+          - name: web_app
+            type: consumer
+        - name: app
+          bd: app_bd
+          contract:
+          - name: web_app
+            type: provider
+    bd:
+    - name: app_bd
+      subnet:
+      - name: 10.10.10.1
+        mask: 24
+        scope: private
+      vrf: Example99
+    - name: web_bd
+      subnet:
+      - name: 20.20.20.1
+        mask: 24
+        scope: public
+      vrf: Example99
+    vrf:
+    - name: Example99
+    contract:
     - name: internet
-      filter: default
-  - name: web_app
-    scope: tenant
-    subject:
+      scope: tenant
+      subject:
+      - name: internet
+        filter: default
     - name: web_app
-      filter: default
+      scope: tenant
+      subject:
+      - name: web_app
+        filter: default
 ```
 A more comprehensive example is available from: [example-inventory.yaml](example-inventory.yaml)
 
@@ -80,13 +90,12 @@ A more comprehensive example is available from: [example-inventory.yaml](example
   gather_facts: no
   roles:
   - role: aci-model
-    aci_model_data: '{{ inventory.aci_topology }}'
+    aci_model_data: '{{ aci_topology }}'
 ```
 
 ## Notes
-
-- Over time more ACI modules will become available and this role will be adapted to work
-  using those newer ACI modules, replacing the low-level **aci_rest** tasks.
+- Over time when more ACI modules are released with Ansible, we will swap the **aci_rest** calls with the high-level module calls.
+- Feel free to add additional functionality and share it with us on Github !
 
 
 ## License
