@@ -1,0 +1,484 @@
+# This taskbook is exactly indentical to the JSON version, but using YAML payload.
+# The aci_rest module simply converts the YAML payload into JSON before sending to the APIC.
+
+# Using YAML as input is convenient when managing the payload e.g. from git.
+
+- name: Push aci_model
+
+  # We prepare an aci_login anchor for convenience
+  vars:
+    aci_login: &aci_login
+      hostname: '{{ apic_host }}'
+      username: '{{ apic_username }}'
+      password: '{{ apic_password }}'
+      use_proxy: '{{ apic_use_proxy }}'
+      validate_certs: '{{ apic_validate_certs }}'
+
+  # We define the delegate_to at the block-level
+  delegate_to: localhost
+
+  block:
+  - name: Create tenants
+    aci_tenant:
+      <<: *aci_login
+      tenant: '{{ item.tenant_name }}'
+      description: '{{ item.tenant_description }}'
+    with_items: '{{ aci_model_data|aci_listify("tenant") }}'
+
+  - name: Create VRFs
+    aci_vrf:
+      <<: *aci_login
+      tenant: '{{ item.tenant_name }}'
+      vrf_name: '{{ item.tenant_vrf_name }}'
+    with_items: '{{ aci_model_data|aci_listify("tenant","vrf") }}'
+
+  - name: Create BDs
+    aci_bd:
+      <<: *aci_login
+      tenant: '{{ item.tenant_name }}'
+      vrf: '{{ item.tenant_bd_vrf }}'
+      bd: '{{ item.tenant_bd_name }}'
+      enable_routing: yes
+    with_items: '{{ aci_model_data|aci_listify("tenant","bd") }}'
+
+  - name: Create BD subnets
+    aci_bd_subnet:
+      <<: *aci_login
+      tenant: '{{ item.tenant_name }}'
+      bd: '{{ item.tenant_bd_name }}'
+      gateway: '{{ item.tenant_bd_subnet_name }}'
+      mask: '{{ item.tenant_bd_subnet_mask }}'
+      scope: '{{ item.tenant_bd_subnet_scope }}'
+    with_items: '{{ aci_model_data|aci_listify("tenant","bd","subnet") }}'
+
+  - name: Create APs
+    aci_ap:
+      <<: *aci_login
+      tenant: '{{ item.tenant_name }}'
+      app_profile: '{{ item.tenant_app_name }}'
+    with_items: '{{ aci_model_data|aci_listify("tenant","app") }}'
+
+  - name: Create EPGs
+    aci_epg:
+      <<: *aci_login
+      tenant: '{{ item.tenant_name }}'
+      app_profile: '{{ item.tenant_app_name }}'
+      epg: '{{ item.tenant_app_epg_name }}'
+      bd: '{{ item.tenant_app_epg_bd }}'
+    with_items: '{{ aci_model_data|aci_listify("tenant","app","epg") }}'
+
+  - name: Create contracts
+    aci_contract:
+      <<: *aci_login
+      tenant: '{{ item.tenant_name }}'
+      contract: '{{ item.tenant_contract_name }}'
+      scope: '{{ item.tenant_contract_scope }}'
+    with_items: '{{ aci_model_data|aci_listify("tenant","contract") }}'
+
+  - name: Create contract subjects
+    aci_contract_subject:
+      <<: *aci_login
+      tenant: '{{ item.tenant_name }}'
+      contract: '{{ item.tenant_contract_name }}'
+      contract_subject: '{{ item.tenant_contract_subject_name }}'
+      reverse_filter: yes
+    with_items: '{{ aci_model_data|aci_listify("tenant","contract","subject") }}'
+
+  - name: Bind contract subjects to filters
+    aci_contract_subject_to_filter:
+      <<: *aci_login
+      tenant: '{{ item.tenant_name }}'
+      contract: '{{ item.tenant_contract_name }}'
+      contract_subject: '{{ item.tenant_contract_subject_name }}'
+      filter: '{{ item.tenant_contract_subject_filter }}'
+    with_items: '{{ aci_model_data|aci_listify("tenant","contract","subject") }}'
+
+  - name: Bind EPGs to contracts
+    aci_epg_to_contract:
+      <<: *aci_login
+      tenant: '{{ item.tenant_name }}'
+      app_profile: '{{ item.tenant_app_name }}'
+      epg: '{{ item.tenant_app_epg_name }}'
+      contract: '{{ item.tenant_app_epg_contract_name }}'
+      contract_type: '{{ item.tenant_app_epg_contract_type }}'
+    with_items: '{{ aci_model_data|aci_listify("tenant","app","epg","contract") }}'
+
+  - name: Create OSPF interface policy profiles
+    aci_rest:
+      <<: *aci_login
+      path: /api/node/mo/uni/tn-{{ item.tenant_name }}/ospfIfPol-{{ item.tenant_protocol_policy_ospf_interface_name }}.json
+      method: post
+      content:
+        ospfIfPol:
+          attributes:
+            dn: uni/tn-{{ item.tenant_name }}/ospfIfPol-{{ item.tenant_protocol_policy_ospf_interface_name }}
+            name: '{{ item.tenant_protocol_policy_ospf_interface_name }}'
+            nwT: bcast
+            ctrl: advert-subnet,mtu-ignore
+            rn: ospfIfPol-Test
+    with_items: '{{ aci_model_data|aci_listify("tenant","protocol_policy","ospf_interface") }}'
+
+  - name: Associate BDs to l3outs
+    aci_bd_to_l3out:
+      <<: *aci_login
+      tenant: '{{ item.tenant_name }}'
+      bd: '{{ item.tenant_bd_name }}'
+      l3out: '{{ item.tenant_bd_l3out_name }}'
+    with_items: '{{ aci_model_data|aci_listify("tenant","bd","l3out") }}'
+
+  - name: Create switch policy profiles
+    aci_rest:
+      <<: *aci_login
+      path: /api/node/mo/uni/infra/nprof-{{ item.access_policy_switch_policy_profile_name }}.json
+      method: post
+      content:
+        infraNodeP:
+          attributes:
+            descr: ''
+            dn: uni/infra/nprof-{{item.access_policy_switch_policy_profile_name }}
+            name: '{{ item.access_policy_switch_policy_profile_name }}'
+            ownerKey: ''
+            ownerTag: ''
+    with_items: '{{ aci_model_data|aci_listify("access_policy","switch_policy_profile") }}'
+
+  - name: Add leaf selectors to switch policy profiles
+    aci_rest:
+      <<: *aci_login
+      path: /api/node/mo/uni/infra/nprof-{{ item.access_policy_switch_policy_profile_name }}.json
+      method: post
+      content:
+        infraNodeP:
+          attributes:
+            descr: ''
+            dn: uni/infra/nprof-{{ item.access_policy_switch_policy_profile_name }}
+            name: '{{ item.access_policy_switch_policy_profile_name }}'
+            ownerKey: ''
+            ownerTag: ''
+          children:
+          - infraLeafS:
+              attributes:
+                descr: ''
+                name: '{{ item.access_policy_switch_policy_profile_leaf_selector_name }}'
+                ownerKey: ''
+                ownerTag: ''
+                type: range
+              children:
+              - infraNodeBlk:
+                  attributes:
+                    descr: ''
+                    from: '{{ item.access_policy_switch_policy_profile_leaf_selector_from }}'
+                    name: '{{ item.access_policy_switch_policy_profile_leaf_selector_name }}'
+                    to: '{{ item.access_policy_switch_policy_profile_leaf_selector_to }}'
+    with_items: '{{ aci_model_data|aci_listify("access_policy","switch_policy_profile","leaf_selector") }}'
+
+  - name: Add interface selector profiles to switch policy profiles
+    aci_rest:
+      <<: *aci_login
+      path: /api/node/mo/uni/infra/nprof-{{ item.access_policy_switch_policy_profile_name }}.json
+      method: post
+      content:
+        infraNodeP:
+          attributes:
+            descr: ''
+            dn: uni/infra/nprof-{{ item.access_policy_switch_policy_profile_name }}
+            name: '{{ item.access_policy_switch_policy_profile_name }}'
+            ownerKey: ''
+            ownerTag: ''
+          children:
+          - infraRsAccPortP:
+              attributes:
+                tDn: uni/infra/accportprof-{{ item.access_policy_switch_policy_profile_interface_selector_profile_name }}
+    with_items: '{{ aci_model_data|aci_listify("access_policy","switch_policy_profile","interface_selector_profile") }}'
+
+  - name: Add interface policy profiles
+    aci_rest:
+      <<: *aci_login
+      path: /api/node/mo/uni/infra/accportprof-{{ item.access_policy_interface_policy_profile_name }}.json
+      method: post
+      content:
+        infraAccPortP:
+          attributes:
+            descr: ''
+            dn: uni/infra/accportprof-{{ item.access_policy_interface_policy_profile_name }}
+            name: '{{ item.access_policy_interface_policy_profile_name }}'
+            ownerKey: ''
+            ownerTag: ''
+    with_items: '{{ aci_model_data|aci_listify("access_policy","interface_policy_profile") }}'
+
+  - name: Add interface selector to interface policy profiles
+    aci_rest:
+      <<: *aci_login
+      path: /api/node/mo/uni/infra/accportprof-{{ item.access_policy_interface_policy_profile_name }}.json
+      method: post
+      content:
+        infraAccPortP:
+          attributes:
+            descr: ''
+            dn: uni/infra/accportprof-{{ item.access_policy_interface_policy_profile_name }}
+            name: '{{ item.access_policy_interface_policy_profile_name }}'
+            ownerKey: ''
+            ownerTag: ''
+          children:
+          - infraHPortS:
+              attributes:
+                descr: ''
+                name: '{{ item.access_policy_interface_policy_profile_interface_selector_name }}'
+                ownerKey: ''
+                ownerTag: ''
+                type: range
+              children:
+              - infraRsAccBaseGrp:
+                  attributes:
+                    fexId: '101'
+                    tDn: uni/infra/funcprof/accbundle-{{ item.access_policy_interface_policy_profile_interface_selector_policy_group }}
+              - infraPortBlk:
+                  attributes:
+                    descr: ''
+                    fromCard: '{{ item.access_policy_interface_policy_profile_interface_selector_int_card }}'
+                    fromPort: '{{ item.access_policy_interface_policy_profile_interface_selector_int_from }}'
+                    name: block2
+                    toCard: '{{ item.access_policy_interface_policy_profile_interface_selector_int_card }}'
+                    toPort: '{{ item.access_policy_interface_policy_profile_interface_selector_int_to }}'
+    with_items: '{{ aci_model_data|aci_listify("access_policy","interface_policy_profile","interface_selector") }}'
+
+  - name: Create LLDP interface policies
+    aci_intf_policy_lldp:
+      <<: *aci_login
+      lldp_policy: '{{ item.access_policy_interface_policy_lldp_name }}'
+      receive_state: '{{ item.access_policy_interface_policy_lldp_receive_state }}'
+      transmit_state: '{{ item.access_policy_interface_policy_lldp_transmit_state }}'
+    with_items: '{{ aci_model_data|aci_listify("access_policy","interface_policy_lldp") }}'
+
+  - name: Create port channel policies
+    aci_intf_policy_port_channel:
+      <<: *aci_login
+      port_channel: '{{ item.access_policy_interface_policy_port_channel_name }}'
+      mode: '{{ item.access_policy_interface_policy_port_channel_mode }}'
+    with_items: '{{ aci_model_data|aci_listify("access_policy","interface_policy_port_channel") }}'
+
+  - name: Add interface policy group VPCs
+    aci_rest:
+      <<: *aci_login
+      path: /api/node/mo/uni/infra/funcprof/accbundle-{{ item.access_policy_interface_policy_policy_group_vpc_name }}.json
+      method: post
+      content:
+        infraAccBndlGrp:
+          attributes:
+            descr: ''
+            dn: uni/infra/funcprof/accbundle-{{ item.access_policy_interface_policy_policy_group_vpc_name }}
+            lagT: node
+            name: '{{ item.access_policy_interface_policy_policy_group_vpc_name }}'
+            ownerKey: ''
+            ownerTag: ''
+          children:
+          - infraRsL2IfPol:
+              attributes:
+                tnL2IfPolName: ''
+          - infraRsHIfPol:
+              attributes:
+                tnFabricHIfPolName: ''
+          - infraRsL2PortSecurityPol:
+              attributes:
+                tnL2PortSecurityPolName: ''
+          - infraRsQosPfcIfPol:
+              attributes:
+                tnQosPfcIfPolName: ''
+          - infraRsMonIfInfraPol:
+              attributes:
+                tnMonInfraPolName: ''
+          - infraRsStpIfPol:
+              attributes:
+                tnStpIfPolName: ''
+          - infraRsQosSdIfPol:
+              attributes:
+                tnQosSdIfPolName: ''
+          - infraRsAttEntP:
+              attributes:
+                tDn: uni/infra/attentp-{{ item.access_policy_interface_policy_policy_group_vpc_aep }}
+          - infraRsMcpIfPol:
+              attributes:
+                tnMcpIfPolName: ''
+          - infraRsLacpPol:
+              attributes:
+                tnLacpLagPolName: '{{ item.access_policy_interface_policy_policy_group_vpc_port_channel }}'
+          - infraRsQosDppIfPol:
+              attributes:
+                tnQosDppPolName: ''
+          - infraRsQosIngressDppIfPol:
+              attributes:
+                tnQosDppPolName: ''
+          - infraRsQosEgressDppIfPol:
+              attributes:
+                tnQosDppPolName: ''
+          - infraRsStormctrlIfPol:
+              attributes:
+                tnStormctrlIfPolName: ''
+          - infraRsLldpIfPol:
+              attributes:
+                tnLldpIfPolName: '{{ item.access_policy_interface_policy_policy_group_vpc_lldp }}'
+          - infraRsFcIfPol:
+              attributes:
+                tnFcIfPolName: ''
+          - infraRsCdpIfPol:
+              attributes:
+                tnCdpIfPolName: ''
+    with_items: '{{ aci_model_data|aci_listify("access_policy","interface_policy_policy_group_vpc") }}'
+
+  - name: Add VLAN pools
+    aci_rest:
+      <<: *aci_login
+      path: /api/node/mo/uni/infra/vlanns-[{{ item.access_policy_vlan_pool_name }}]-{{ item.access_policy_vlan_pool_alloc }}.json
+      method: post
+      content:
+        fvnsVlanInstP:
+          attributes:
+            allocMode: '{{ item.access_policy_vlan_pool_alloc }}'
+            descr: ''
+            dn: uni/infra/vlanns-[{{ item.access_policy_vlan_pool_name }}]-{{ item.access_policy_vlan_pool_alloc }}
+            name: '{{ item.access_policy_vlan_pool_name }}'
+            ownerKey: ''
+            ownerTag: ''
+    with_items: '{{ aci_model_data|aci_listify("access_policy","vlan_pool") }}'
+
+  - name: Add encaps to VLAN pools
+    aci_rest:
+      <<: *aci_login
+      path: /api/node/mo/uni/infra/vlanns-[{{ item.access_policy_vlan_pool_name }}]-{{ item.access_policy_vlan_pool_alloc }}.json
+      method: post
+      content:
+        fvnsVlanInstP:
+          attributes:
+            allocMode: '{{ item.access_policy_vlan_pool_alloc }}'
+            descr: ''
+            dn: uni/infra/vlanns-[{{ item.access_policy_vlan_pool_name }}]-{{ item.access_policy_vlan_pool_alloc }}
+            name: '{{ item.access_policy_vlan_pool_name }}'
+            ownerKey: ''
+            ownerTag: ''
+          children:
+          - fvnsEncapBlk:
+              attributes:
+                allocMode: inherit
+                descr: ''
+                from: vlan-{{ item.access_policy_vlan_pool_encap_block_from }}
+                name: ''
+                to: vlan-{{ item.access_policy_vlan_pool_encap_block_to }}
+    with_items: '{{ aci_model_data|aci_listify("access_policy","vlan_pool","encap_block") }}'
+
+  - name: Add AEPs
+    aci_rest:
+      <<: *aci_login
+      path: /api/node/mo/uni/infra.json
+      method: post
+      content:
+        infraAttEntityP:
+          attributes:
+            descr: ''
+            dn: uni/infra/attentp-{{ item.access_policy_aep_name }}
+            name: '{{ item.access_policy_aep_name }}'
+            ownerKey: ''
+            ownerTag: ''
+    with_items: '{{ aci_model_data|aci_listify("access_policy","aep") }}'
+
+  - name: Add router domains
+    aci_rest:
+      <<: *aci_login
+      path: /api/node/mo/uni/l3dom-{{ item.access_policy_external_routed_domain_name }}.json
+      method: post
+      content:
+        l3extDomP:
+          attributes:
+            dn: uni/l3dom-{{ item.access_policy_external_routed_domain_name }}
+            name: '{{ item.access_policy_external_routed_domain_name }}'
+            ownerKey: ''
+            ownerTag: ''
+          children:
+          - infraRsVlanNs:
+              attributes:
+                tDn: uni/infra/vlanns-[{{ item.access_policy_external_routed_domain_vlan_pool }}]-{{ item.access_policy_external_routed_domain_vlan_pool_alloc }}
+    with_items: '{{ aci_model_data|aci_listify("access_policy","external_routed_domain") }}'
+
+  - name: Add physical domains
+    aci_rest:
+      <<: *aci_login
+      path: /api/node/mo/uni/phys-{{ item.access_policy_physical_domain_name }}.json
+      method: post
+      content:
+        physDomP:
+          attributes:
+            dn: uni/phys-{{ item.access_policy_physical_domain_name }}
+            name: '{{ item.access_policy_physical_domain_name }}'
+            ownerKey: ''
+            ownerTag: ''
+          children:
+            - infraRsVlanNs:
+                attributes:
+                  tDn: uni/infra/vlanns-[{{ item.access_policy_physical_domain_vlan_pool }}]-{{ item.access_policy_physical_domain_vlan_pool_alloc }}
+    with_items: '{{ aci_model_data|aci_listify("access_policy","physical_domain") }}'
+
+  - name: Link AEPs to domains
+    aci_rest:
+      <<: *aci_login
+      path: /api/node/mo/uni/infra/attentp-{{ item.access_policy_aep_name }}.json
+      method: post
+      content:
+        infraRsDomP:
+          attributes:
+            childAction: ''
+            dn: uni/infra/attentp-{{ item.access_policy_aep_name }}/rsdomP-[uni/{{ item.access_policy_aep_domain_name }}]
+            tDn: uni/{{ item.access_policy_aep_domain_name }}
+    with_items: '{{ aci_model_data|aci_listify("access_policy","aep", "domain") }}'
+
+  - name: Create static paths
+    aci_rest:
+      <<: *aci_login
+      path: /api/node/mo/uni/tn-{{ item.tenant_name }}/ap-{{ item.tenant_app_name }}/epg-{{ item.tenant_app_epg_name }}.json
+      method: post
+      content:
+        fvRsPathAtt:
+          attributes:
+            descr: ''
+            dn: uni/tn-{{ item.tenant_name }}/ap-{{ item.tenant_app_name }}/epg-{{ item.tenant_app_epg_name }}/rspathAtt-[{{ item.tenant_app_epg_static_path_path }}]
+            encap: '{{ item.tenant_app_epg_static_path_encap }}'
+            instrImedcy: lazy
+            mode: '{{ item.tenant_app_epg_static_path_mode }}'
+            primaryEncap: unknown
+            tDn: '{{ item.tenant_app_epg_static_path_path }}'
+    with_items: '{{ aci_model_data|aci_listify("tenant","app","epg","static_path") }}'
+
+
+  - name: Create virtual port channels
+    aci_rest:
+      <<: *aci_login
+      path: /api/node/mo/uni/fabric/protpol/expgep-{{ item.access_policy_switch_policy_virtual_port_channel_name }}.json
+      method: post
+      content:
+        fabricExplicitGEp:
+          attributes:
+            dn: uni/fabric/protpol/expgep-{{ item.access_policy_switch_policy_virtual_port_channel_name }}
+            name: '{{ item.access_policy_switch_policy_virtual_port_channel_name }}'
+            id: '{{ item.access_policy_switch_policy_virtual_port_channel_id }}'
+            rn: expgep-{{ item.access_policy_switch_policy_virtual_port_channel_name }}
+          children:
+          - fabricNodePEp:
+              attributes:
+                dn: uni/fabric/protpol/expgep-{{ item.access_policy_switch_policy_virtual_port_channel_name }}/nodepep-{{ item.access_policy_switch_policy_virtual_port_channel_switch1 }}
+                id: '{{ item.access_policy_switch_policy_virtual_port_channel_switch1 }}'
+                rn: nodepep-{{ item.access_policy_switch_policy_virtual_port_channel_switch1 }}
+          - fabricNodePEp:
+              attributes:
+                dn: uni/fabric/protpol/expgep-{{ item.access_policy_switch_policy_virtual_port_channel_name }}/nodepep-{{ item.access_policy_switch_policy_virtual_port_channel_switch2 }}
+                id: '{{ item.access_policy_switch_policy_virtual_port_channel_switch2 }}'
+                rn: nodepep-{{ item.access_policy_switch_policy_virtual_port_channel_switch2 }}
+    with_items: '{{ aci_model_data|aci_listify("access_policy","switch_policy_virtual_port_channel") }}'
+
+  - name: Bind EPGs to domains
+    aci_epg_to_domain:
+      <<: *aci_login
+      tenant: '{{ item.tenant_name }}'
+      app_profile: '{{ item.tenant_app_name }}'
+      epg: '{{ item.tenant_app_epg_name }}'
+      domain: '{{ item.tenant_app_epg_domain_name }}'
+      domain_type: '{{ item.tenant_app_epg_domain_type }}'
+    with_items: '{{ aci_model_data|aci_listify("tenant","app","epg","domain") }}'
+
+# vim: ts=2: sw=2: et
