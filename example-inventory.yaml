@@ -2,27 +2,25 @@
 fabric01:
   hosts:
     apic1:
-      apic_ip: '10.48.22.69'
+      apic_host: 10.48.22.69
       apic_username: admin
-      apic_password: 'ins3965!'
+      apic_password: foo!bar
     apic2:
-      apic_ip: '10.48.22.70'
+      apic_host: 10.48.22.70
       apic_username: admin
-      apic_password: 'ins3965!'
+      apic_password: foo!bar
     apic3:
-      apic_ip: '10.48.22.71'
+      apic_ip: 10.48.22.71
       apic_username: admin
-      apic_password: 'ins3965!'
+      apic_password: foo!bar
   vars:
-    aci_login: &aci_login
-      hostname: '{{ apic_ip }}'
-      username: '{{ apic_username }}'
-      password: '{{ apic_password }}'
-      validate_certs: no
+    apic_use_proxy: no
+    apic_validate_certs: no
+
     aci_topology:
       access_policy:
       - switch_policy_virtual_port_channel:
-        - name: '997_998'
+        - name: 997_998
           id: 997
           switch1: 997
           switch2: 998
@@ -43,7 +41,7 @@ fabric01:
           - name: leaf_998
         - name: leaf_997_998
           leaf_selector:
-          - name: '997_998'
+          - name: 997_998
             from: 997
             to: 998
           interface_selector_profile:
@@ -136,12 +134,12 @@ fabric01:
               type: consumer
             static_path:
             - pod: 1
-              path: 'topology/pod-1/paths-997/pathep-[eth1/33]'
-              encap: 'vlan-101'
+              path: topology/pod-1/paths-997/pathep-[eth1/33]
+              encap: vlan-101
               mode: regular
             - pod: 1
-              path: 'topology/pod-1/paths-997/pathep-[eth1/34]'
-              encap: 'vlan-101'
+              path: topology/pod-1/paths-997/pathep-[eth1/34]
+              encap: vlan-101
               mode: native
             domain:
             - name: 99_baremetal_01
@@ -153,8 +151,8 @@ fabric01:
               type: provider
             static_path:
             - pod: 1
-              path: 'topology/pod-1/paths-998/pathep-[eth1/35]'
-              encap: 'vlan-102'
+              path: topology/pod-1/paths-998/pathep-[eth1/35]
+              encap: vlan-102
               mode: untagged
             domain:
             - name: 99_baremetal_01
@@ -181,15 +179,14 @@ fabric01:
           scope: tenant
           subject:
           - name: internet
-            filter: 'default'
+            filter: default
         - name: web_app
           scope: tenant
           subject:
           - name: web_app
-            filter: 'default'
+            filter: default
         protocol_policy:
         - ospf_interface:
           - name: router_01_ospf
-
 
 # vim: ts=2: sw=2: et
