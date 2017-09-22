@@ -199,7 +199,7 @@
       path: /api/node/mo/uni/infra/vlanns-[{{ item.access_policy_vlan_pool_name }}]-{{ item.access_policy_vlan_pool_alloc }}.json
       method: post
       content:
-        {"fvnsVlanInstP":{"attributes":{"allocMode":"{ {item.access_policy_vlan_pool_alloc }}","descr":"","dn":"uni/infra/vlanns-[{{ item.access_policy_vlan_pool_name }}]-{{ item.access_policy_vlan_pool_alloc }}","name":"{{ item.access_policy_vlan_pool_name }}","ownerKey":"","ownerTag":""}}}
+        {"fvnsVlanInstP":{"attributes":{"allocMode":"{{ item.access_policy_vlan_pool_alloc }}","descr":"","dn":"uni/infra/vlanns-[{{ item.access_policy_vlan_pool_name }}]-{{ item.access_policy_vlan_pool_alloc }}","name":"{{ item.access_policy_vlan_pool_name }}","ownerKey":"","ownerTag":""}}}
     with_items: '{{ aci_model_data|aci_listify("access_policy","vlan_pool") }}'
 
   - name: Add encaps to VLAN pool
@@ -265,7 +265,6 @@
       content:
         {"fabricExplicitGEp":{"attributes":{"dn":"uni/fabric/protpol/expgep-{{ item.access_policy_switch_policy_virtual_port_channel_name }}","name":"{{ item.access_policy_switch_policy_virtual_port_channel_name }}","id":"{{ item.access_policy_switch_policy_virtual_port_channel_id }}","rn":"expgep-{{ item.access_policy_switch_policy_virtual_port_channel_name }}"},"children":[{"fabricNodePEp":{"attributes":{"dn":"uni/fabric/protpol/expgep-{{ item.access_policy_switch_policy_virtual_port_channel_name }}/nodepep-{{ item.access_policy_switch_policy_virtual_port_channel_switch1 }}","id":"{{ item.access_policy_switch_policy_virtual_port_channel_switch1 }}","rn":"nodepep-{{ item.access_policy_switch_policy_virtual_port_channel_switch1 }}"}}},{"fabricNodePEp":{"attributes":{"dn":"uni/fabric/protpol/expgep-{{ item.access_policy_switch_policy_virtual_port_channel_name }}/nodepep-{{ item.access_policy_switch_policy_virtual_port_channel_switch2 }}","id":"{{ item.access_policy_switch_policy_virtual_port_channel_switch2 }}","rn":"nodepep-{{ item.access_policy_switch_policy_virtual_port_channel_switch2 }}"},}}]}}
     with_items: '{{ aci_model_data|aci_listify("access_policy","switch_policy_virtual_port_channel") }}'
-
 
   - name: Bind EPGs to Domains
     aci_epg_to_domain:
