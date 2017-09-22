@@ -103,7 +103,7 @@
       path: /api/node/mo/uni/tn-{{ item.tenant_name }}/ospfIfPol-{{ item.tenant_protocol_policy_ospf_interface_name }}.json
       method: post
       content:
-        {"ospfIfPol":{"attributes":{"dn":"uni/tn-{{ item.tenant_name }}/ospfIfPol-{{ item.tenant_protocol_policy_ospf_interface_name }}","name":"{{ item.tenant_protocol_policy_ospf_interface_name }}","nwT":"bcast","ctrl":"advert-subnet,mtu-ignore","rn":"ospfIfPol-Test"}}}
+        {"ospfIfPol":{"attributes":{"dn":"uni/tn-{{ item.tenant_name }}/ospfIfPol-{{ item.tenant_protocol_policy_ospf_interface_name }}","name":"{{ item.tenant_protocol_policy_ospf_interface_name }}","nwT":"bcast","ctrl":"advert-subnet,mtu-ignore","rn":"ospfIfPol-{{ item.tenant_protocol_policy_ospf_interface_name }}"}}}
     with_items:
     - '{{ aci_model_data|aci_listify("tenant","protocol_policy","ospf_interface") }}'
     delegate_to: localhost
@@ -161,7 +161,7 @@
       path: /api/node/mo/uni/infra/accportprof-{{ item.access_policy_interface_policy_profile_name }}.json
       method: post
       content:
-        {"infraAccPortP":{"attributes":{"descr":"","dn":"uni/infra/accportprof-{{ item.access_policy_interface_policy_profile_{{ name }}","name":"{{ item.access_policy_interface_policy_profile_{{ name }}","ownerKey":"","ownerTag":""},"children":[{"infraHPortS":{"attributes":{"descr":"","name":"{{ item.access_policy_interface_policy_profile_interface_selector_{{ name }}","ownerKey":"","ownerTag":"","type":"range"},"children":[{"infraRsAccBaseGrp":{"attributes":{"fexId":"101","tDn":"uni/infra/funcprof/{{ item.access_policy_interface_policy_profile_interface_selector_policy_group_type }}-{{ item.access_policy_interface_policy_profile_interface_selector_policy_group }}"}}},{"infraPortBlk":{"attributes":{"descr":"","fromCard":"{{ item.access_policy_interface_policy_profile_interface_selector_int_card }}","fromPort":"{{ item.access_policy_interface_policy_profile_interface_selector_int_from }}","name":"block2","toCard":"{{ item.access_policy_interface_policy_profile_interface_selector_int_card }}","toPort":"{{ item.access_policy_interface_policy_profile_interface_selector_int_to }}"}}}]}}]}}
+        {"infraAccPortP":{"attributes":{"descr":"","dn":"uni/infra/accportprof-{{ item.access_policy_interface_policy_profile_name }}","name":"{{ item.access_policy_interface_policy_profile_name }}","ownerKey":"","ownerTag":""},"children":[{"infraHPortS":{"attributes":{"descr":"","name":"{{ item.access_policy_interface_policy_profile_interface_selector_name }}","ownerKey":"","ownerTag":"","type":"range"},"children":[{"infraRsAccBaseGrp":{"attributes":{"fexId":"101","tDn":"uni/infra/funcprof/{{ item.access_policy_interface_policy_profile_interface_selector_policy_group_type }}-{{ item.access_policy_interface_policy_profile_interface_selector_policy_group }}"}}},{"infraPortBlk":{"attributes":{"descr":"","fromCard":"{{ item.access_policy_interface_policy_profile_interface_selector_int_card }}","fromPort":"{{ item.access_policy_interface_policy_profile_interface_selector_int_from }}","name":"block2","toCard":"{{ item.access_policy_interface_policy_profile_interface_selector_int_card }}","toPort":"{{ item.access_policy_interface_policy_profile_interface_selector_int_to }}"}}}]}}]}}
     with_items:
     - '{{ aci_model_data|aci_listify("access_policy","interface_policy_profile","interface_selector") }}'
 
@@ -186,7 +186,7 @@
       path: /api/node/mo/uni/infra/funcprof/accbundle-{{ item.access_policy_interface_policy_policy_group_vpc_name }}.json
       method: post
       content:
-        {"infraAccBndlGrp":{"attributes":{"descr":"","dn":"uni/infra/funcprof/accbundle-{{ item.access_policy_interface_policy_policy_group_vpc_{{ name }}","lagT":"node","name":"{{ item.access_policy_interface_policy_policy_group_vpc_{{ name }}","ownerKey":"","ownerTag":""},"children":[{"infraRsL2IfPol":{"attributes":{"tnL2IfPolName":""}}},{"infraRsHIfPol":{"attributes":{"tnFabricHIfPolName":""}}},{"infraRsL2PortSecurityPol":{"attributes":{"tnL2PortSecurityPolName":""}}},{"infraRsQosPfcIfPol":{"attributes":{"tnQosPfcIfPolName":""}}},{"infraRsMonIfInfraPol":{"attributes":{"tnMonInfraPolName":""}}},{"infraRsStpIfPol":{"attributes":{"tnStpIfPolName":""}}},{"infraRsQosSdIfPol":{"attributes":{"tnQosSdIfPolName":""}}},{"infraRsAttEntP":{"attributes":{"tDn":"uni/infra/attentp-{{ item.access_policy_interface_policy_policy_group_vpc_aep }}"}}},{"infraRsMcpIfPol":{"attributes":{"tnMcpIfPolName":""}}},{"infraRsLacpPol":{"attributes":{"tnLacpLagPolName":"{{ item.access_policy_interface_policy_policy_group_vpc_port_channel }}"}}},{"infraRsQosDppIfPol":{"attributes":{"tnQosDppPolName":""}}},{"infraRsQosIngressDppIfPol":{"attributes":{"tnQosDppPolName":""}}},{"infraRsQosEgressDppIfPol":{"attributes":{"tnQosDppPolName":""}}},{"infraRsStormctrlIfPol":{"attributes":{"tnStormctrlIfPolName":""}}},{"infraRsLldpIfPol":{"attributes":{"tnLldpIfPolName":"{{ item.access_policy_interface_policy_policy_group_vpc_lldp }}"}}},{"infraRsFcIfPol":{"attributes":{"tnFcIfPolName":""}}},{"infraRsCdpIfPol":{"attributes":{"tnCdpIfPolName":""}}}]}}
+        {"infraAccBndlGrp":{"attributes":{"descr":"","dn":"uni/infra/funcprof/accbundle-{{ item.access_policy_interface_policy_policy_group_vpc_name }}","lagT":"node","name":"{{ item.access_policy_interface_policy_policy_group_vpc_name }}","ownerKey":"","ownerTag":""},"children":[{"infraRsL2IfPol":{"attributes":{"tnL2IfPolName":""}}},{"infraRsHIfPol":{"attributes":{"tnFabricHIfPolName":""}}},{"infraRsL2PortSecurityPol":{"attributes":{"tnL2PortSecurityPolName":""}}},{"infraRsQosPfcIfPol":{"attributes":{"tnQosPfcIfPolName":""}}},{"infraRsMonIfInfraPol":{"attributes":{"tnMonInfraPolName":""}}},{"infraRsStpIfPol":{"attributes":{"tnStpIfPolName":""}}},{"infraRsQosSdIfPol":{"attributes":{"tnQosSdIfPolName":""}}},{"infraRsAttEntP":{"attributes":{"tDn":"uni/infra/attentp-{{ item.access_policy_interface_policy_policy_group_vpc_aep }}"}}},{"infraRsMcpIfPol":{"attributes":{"tnMcpIfPolName":""}}},{"infraRsLacpPol":{"attributes":{"tnLacpLagPolName":"{{ item.access_policy_interface_policy_policy_group_vpc_port_channel }}"}}},{"infraRsQosDppIfPol":{"attributes":{"tnQosDppPolName":""}}},{"infraRsQosIngressDppIfPol":{"attributes":{"tnQosDppPolName":""}}},{"infraRsQosEgressDppIfPol":{"attributes":{"tnQosDppPolName":""}}},{"infraRsStormctrlIfPol":{"attributes":{"tnStormctrlIfPolName":""}}},{"infraRsLldpIfPol":{"attributes":{"tnLldpIfPolName":"{{ item.access_policy_interface_policy_policy_group_vpc_lldp }}"}}},{"infraRsFcIfPol":{"attributes":{"tnFcIfPolName":""}}},{"infraRsCdpIfPol":{"attributes":{"tnCdpIfPolName":""}}}]}}
     with_items:
     - '{{ aci_model_data|aci_listify("access_policy","interface_policy_policy_group_vpc") }}'
 
@@ -196,7 +196,7 @@
       path: /api/node/mo/uni/infra/funcprof/accportgrp-{{ item.access_policy_interface_policy_policy_group_access_name }}.json
       method: post
       content:
-        {"infraAccPortGrp":{"attributes":{"descr":"","dn":"uni/infra/funcprof/accportgrp-{{ item.access_policy_interface_policy_policy_group_access_{{ name }}","name":"{{ item.access_policy_interface_policy_policy_group_access_{{ name }}","ownerKey":"","ownerTag":""},"children":[{"infraRsL2IfPol":{"attributes":{"tnL2IfPolName":""}}},{"infraRsHIfPol":{"attributes":{"tnFabricHIfPolName":""}}},{"infraRsL2PortSecurityPol":{"attributes":{"tnL2PortSecurityPolName":""}}},{"infraRsQosPfcIfPol":{"attributes":{"tnQosPfcIfPolName":""}}},{"infraRsMonIfInfraPol":{"attributes":{"tnMonInfraPolName":""}}},{"infraRsStpIfPol":{"attributes":{"tnStpIfPolName":""}}},{"infraRsQosSdIfPol":{"attributes":{"tnQosSdIfPolName":""}}},{"infraRsAttEntP":{"attributes":{"tDn":"uni/infra/attentp-{{ item.access_policy_interface_policy_policy_group_access_aep }}"}}},{"infraRsMcpIfPol":{"attributes":{"tnMcpIfPolName":""}}},{"infraRsQosDppIfPol":{"attributes":{"tnQosDppPolName":""}}},{"infraRsQosIngressDppIfPol":{"attributes":{"tnQosDppPolName":""}}},{"infraRsQosEgressDppIfPol":{"attributes":{"tnQosDppPolName":""}}},{"infraRsStormctrlIfPol":{"attributes":{"tnStormctrlIfPolName":""}}},{"infraRsLldpIfPol":{"attributes":{"tnLldpIfPolName":"{{ item.access_policy_interface_policy_policy_group_access_lldp }}"}}},{"infraRsFcIfPol":{"attributes":{"tnFcIfPolName":""}}},{"infraRsCdpIfPol":{"attributes":{"tnCdpIfPolName":""}}}]}}
+        {"infraAccPortGrp":{"attributes":{"descr":"","dn":"uni/infra/funcprof/accportgrp-{{ item.access_policy_interface_policy_policy_group_access_name }}","name":"{{ item.access_policy_interface_policy_policy_group_access_name }}","ownerKey":"","ownerTag":""},"children":[{"infraRsL2IfPol":{"attributes":{"tnL2IfPolName":""}}},{"infraRsHIfPol":{"attributes":{"tnFabricHIfPolName":""}}},{"infraRsL2PortSecurityPol":{"attributes":{"tnL2PortSecurityPolName":""}}},{"infraRsQosPfcIfPol":{"attributes":{"tnQosPfcIfPolName":""}}},{"infraRsMonIfInfraPol":{"attributes":{"tnMonInfraPolName":""}}},{"infraRsStpIfPol":{"attributes":{"tnStpIfPolName":""}}},{"infraRsQosSdIfPol":{"attributes":{"tnQosSdIfPolName":""}}},{"infraRsAttEntP":{"attributes":{"tDn":"uni/infra/attentp-{{ item.access_policy_interface_policy_policy_group_access_aep }}"}}},{"infraRsMcpIfPol":{"attributes":{"tnMcpIfPolName":""}}},{"infraRsQosDppIfPol":{"attributes":{"tnQosDppPolName":""}}},{"infraRsQosIngressDppIfPol":{"attributes":{"tnQosDppPolName":""}}},{"infraRsQosEgressDppIfPol":{"attributes":{"tnQosDppPolName":""}}},{"infraRsStormctrlIfPol":{"attributes":{"tnStormctrlIfPolName":""}}},{"infraRsLldpIfPol":{"attributes":{"tnLldpIfPolName":"{{ item.access_policy_interface_policy_policy_group_access_lldp }}"}}},{"infraRsFcIfPol":{"attributes":{"tnFcIfPolName":""}}},{"infraRsCdpIfPol":{"attributes":{"tnCdpIfPolName":""}}}]}}
     with_items:
     - '{{ aci_model_data|aci_listify("access_policy","interface_policy_policy_group_access") }}'
 
@@ -206,7 +206,7 @@
       path: /api/node/mo/uni/infra/vlanns-[{{ item.access_policy_vlan_pool_name }}]-{{ item.access_policy_vlan_pool_alloc }}.json
       method: post
       content:
-        {"fvnsVlanInstP":{"attributes":{"allocMode":"{ {item.access_policy_vlan_pool_alloc }}","descr":"","dn":"uni/infra/vlanns-[{{ item.access_policy_vlan_pool_{{ name }}]-{{ item.access_policy_vlan_pool_alloc }}","name":"{{ item.access_policy_vlan_pool_{{ name }}","ownerKey":"","ownerTag":""}}}
+        {"fvnsVlanInstP":{"attributes":{"allocMode":"{ {item.access_policy_vlan_pool_alloc }}","descr":"","dn":"uni/infra/vlanns-[{{ item.access_policy_vlan_pool_name }}]-{{ item.access_policy_vlan_pool_alloc }}","name":"{{ item.access_policy_vlan_pool_name }}","ownerKey":"","ownerTag":""}}}
     with_items:
     - '{{ aci_model_data|aci_listify("access_policy","vlan_pool") }}'
 
@@ -216,7 +216,7 @@
       path: /api/node/mo/uni/infra/vlanns-[{{ item.access_policy_vlan_pool_name }}]-{{ item.access_policy_vlan_pool_alloc }}.json
       method: post
       content:
-        {"fvnsVlanInstP":{"attributes":{"allocMode":"{{ item.access_policy_vlan_pool_alloc }}","descr":"","dn":"uni/infra/vlanns-[{{ item.access_policy_vlan_pool_{{ name }}]-{{ item.access_policy_vlan_pool_alloc }}","name":"{{ item.access_policy_vlan_pool_{{ name }}","ownerKey":"","ownerTag":""},"children":[{"fvnsEncapBlk":{"attributes":{"allocMode":"inherit","descr":"","from":"vlan-{{ item.access_policy_vlan_pool_encap_block_from }}","name":"","to":"vlan-{{ item.access_policy_vlan_pool_encap_block_to }}"}}}]}}
+        {"fvnsVlanInstP":{"attributes":{"allocMode":"{{ item.access_policy_vlan_pool_alloc }}","descr":"","dn":"uni/infra/vlanns-[{{ item.access_policy_vlan_pool_name }}]-{{ item.access_policy_vlan_pool_alloc }}","name":"{{ item.access_policy_vlan_pool_name }}","ownerKey":"","ownerTag":""},"children":[{"fvnsEncapBlk":{"attributes":{"allocMode":"inherit","descr":"","from":"vlan-{{ item.access_policy_vlan_pool_encap_block_from }}","name":"","to":"vlan-{{ item.access_policy_vlan_pool_encap_block_to }}"}}}]}}
     with_items:
     - '{{ aci_model_data|aci_listify("access_policy","vlan_pool","encap_block") }}'
 
@@ -226,7 +226,7 @@
       path: /api/node/mo/uni/infra.json
       method: post
       content:
-        {"infraAttEntityP":{"attributes":{"descr":"","dn":"uni/infra/attentp-{{ item.access_policy_aep_{{ name }}","name":"{{ item.access_policy_aep_{{ name }}","ownerKey":"","ownerTag":""}}}
+        {"infraAttEntityP":{"attributes":{"descr":"","dn":"uni/infra/attentp-{{ item.access_policy_aep_name }}","name":"{{ item.access_policy_aep_name }}","ownerKey":"","ownerTag":""}}}
     with_items:
     - '{{ aci_model_data|aci_listify("access_policy","aep") }}'
 
@@ -236,7 +236,7 @@
       path: /api/node/mo/uni/l3dom-{{ item.access_policy_external_routed_domain_name }}.json
       method: post
       content:
-        {"l3extDomP":{"attributes":{"dn":"uni/l3dom-{{ item.access_policy_external_routed_domain_{{ name }}","name":"{{ item.access_policy_external_routed_domain_{{ name }}","ownerKey":"","ownerTag":""},"children":[{"infraRsVlanNs":{"attributes":{"tDn":"uni/infra/vlanns-[{{ item.access_policy_external_routed_domain_vlan_pool }}]-{{ item.access_policy_external_routed_domain_vlan_pool_alloc }}"}}}]}}
+        {"l3extDomP":{"attributes":{"dn":"uni/l3dom-{{ item.access_policy_external_routed_domain_name }}","name":"{{ item.access_policy_external_routed_domain_name }}","ownerKey":"","ownerTag":""},"children":[{"infraRsVlanNs":{"attributes":{"tDn":"uni/infra/vlanns-[{{ item.access_policy_external_routed_domain_vlan_pool }}]-{{ item.access_policy_external_routed_domain_vlan_pool_alloc }}"}}}]}}
     with_items:
     - '{{ aci_model_data|aci_listify("access_policy","external_routed_domain") }}'
 
@@ -246,7 +246,7 @@
       path: /api/node/mo/uni/phys-{{ item.access_policy_physical_domain_name }}.json
       method: post
       content:
-        {"physDomP":{"attributes":{"dn":"uni/phys-{{ item.access_policy_physical_domain_{{ name }}","name":"{{ item.access_policy_physical_domain_{{ name }}","ownerKey":"","ownerTag":""},"children":[{"infraRsVlanNs":{"attributes":{"tDn":"uni/infra/vlanns-[{{ item.access_policy_physical_domain_vlan_pool }}]-{{ item.access_policy_physical_domain_vlan_pool_alloc }}"}}}]}}
+        {"physDomP":{"attributes":{"dn":"uni/phys-{{ item.access_policy_physical_domain_name }}","name":"{{ item.access_policy_physical_domain_name }}","ownerKey":"","ownerTag":""},"children":[{"infraRsVlanNs":{"attributes":{"tDn":"uni/infra/vlanns-[{{ item.access_policy_physical_domain_vlan_pool }}]-{{ item.access_policy_physical_domain_vlan_pool_alloc }}"}}}]}}
     with_items:
     - '{{ aci_model_data|aci_listify("access_policy","physical_domain") }}'
 
@@ -256,7 +256,7 @@
       path: /api/node/mo/uni/infra/attentp-{{ item.access_policy_aep_name }}.json
       method: post
       content:
-        {"infraRsDomP":{"attributes":{"childAction":"","dn":"uni/infra/attentp-{{ item.access_policy_aep_{{ name }}/rsdomP-[uni/{{ item.access_policy_aep_domain_{{ name }}]","tDn":"uni/{{ item.access_policy_aep_domain_{{ name }}"}}}
+        {"infraRsDomP":{"attributes":{"childAction":"","dn":"uni/infra/attentp-{{ item.access_policy_aep_name }}/rsdomP-[uni/{{ item.access_policy_aep_domain_name }}]","tDn":"uni/{{ item.access_policy_aep_domain_name }}"}}}
     with_items:
     - '{{ aci_model_data|aci_listify("access_policy","aep", "domain") }}'
 
@@ -266,7 +266,7 @@
       path: /api/node/mo/uni/tn-{{ item.tenant_name }}/ap-{{ item.tenant_app_name }}/epg-{{ item.tenant_app_epg_name }}.json
       method: post
       content:
-        {"fvRsPathAtt":{"attributes":{"descr":"","dn":"uni/tn-{{ item.tenant_{{ name }}/ap-{{ item.tenant_app_{{ name }}/epg-{{ item.tenant_app_epg_{{ name }}/rspathAtt-[{{ item.tenant_app_epg_static_path_path }}]","encap":"{{ item.tenant_app_epg_static_path_encap }}","instrImedcy":"lazy","mode":"{{ item.tenant_app_epg_static_path_mode }}","primaryEncap":"unknown","tDn":"{{ item.tenant_app_epg_static_path_path }}"}}}
+        {"fvRsPathAtt":{"attributes":{"descr":"","dn":"uni/tn-{{ item.tenant_name }}/ap-{{ item.tenant_app_name }}/epg-{{ item.tenant_app_epg_name }}/rspathAtt-[{{ item.tenant_app_epg_static_path_path }}]","encap":"{{ item.tenant_app_epg_static_path_encap }}","instrImedcy":"lazy","mode":"{{ item.tenant_app_epg_static_path_mode }}","primaryEncap":"unknown","tDn":"{{ item.tenant_app_epg_static_path_path }}"}}}
     with_items: '{{ aci_model_data|aci_listify("tenant","app","epg","static_path") }}'
 
 
@@ -276,7 +276,7 @@
       path: /api/node/mo/uni/fabric/protpol/expgep-{{ item.access_policy_switch_policy_virtual_port_channel_name }}.json
       method: post
       content:
-        {"fabricExplicitGEp":{"attributes":{"dn":"uni/fabric/protpol/expgep-{{ item.access_policy_switch_policy_virtual_port_channel_{{ name }}","name":"{{ item.access_policy_switch_policy_virtual_port_channel_{{ name }}","id":"{{ item.access_policy_switch_policy_virtual_port_channel_id }}","rn":"expgep-{{ item.access_policy_switch_policy_virtual_port_channel_{{ name }}"},"children":[{"fabricNodePEp":{"attributes":{"dn":"uni/fabric/protpol/expgep-{{ item.access_policy_switch_policy_virtual_port_channel_{{ name }}/nodepep-{{ item.access_policy_switch_policy_virtual_port_channel_switch1 }}","id":"{{ item.access_policy_switch_policy_virtual_port_channel_switch1 }}","rn":"nodepep-{{ item.access_policy_switch_policy_virtual_port_channel_switch1 }}"}}},{"fabricNodePEp":{"attributes":{"dn":"uni/fabric/protpol/expgep-{{ item.access_policy_switch_policy_virtual_port_channel_{{ name }}/nodepep-{{ item.access_policy_switch_policy_virtual_port_channel_switch2 }}","id":"{{ item.access_policy_switch_policy_virtual_port_channel_switch2 }}","rn":"nodepep-{{ item.access_policy_switch_policy_virtual_port_channel_switch2 }}"},}}]}}
+        {"fabricExplicitGEp":{"attributes":{"dn":"uni/fabric/protpol/expgep-{{ item.access_policy_switch_policy_virtual_port_channel_name }}","name":"{{ item.access_policy_switch_policy_virtual_port_channel_name }}","id":"{{ item.access_policy_switch_policy_virtual_port_channel_id }}","rn":"expgep-{{ item.access_policy_switch_policy_virtual_port_channel_name }}"},"children":[{"fabricNodePEp":{"attributes":{"dn":"uni/fabric/protpol/expgep-{{ item.access_policy_switch_policy_virtual_port_channel_name }}/nodepep-{{ item.access_policy_switch_policy_virtual_port_channel_switch1 }}","id":"{{ item.access_policy_switch_policy_virtual_port_channel_switch1 }}","rn":"nodepep-{{ item.access_policy_switch_policy_virtual_port_channel_switch1 }}"}}},{"fabricNodePEp":{"attributes":{"dn":"uni/fabric/protpol/expgep-{{ item.access_policy_switch_policy_virtual_port_channel_name }}/nodepep-{{ item.access_policy_switch_policy_virtual_port_channel_switch2 }}","id":"{{ item.access_policy_switch_policy_virtual_port_channel_switch2 }}","rn":"nodepep-{{ item.access_policy_switch_policy_virtual_port_channel_switch2 }}"},}}]}}
     with_items: '{{ aci_model_data|aci_listify("access_policy","switch_policy_virtual_port_channel") }}'
 
 
