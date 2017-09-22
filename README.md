@@ -1,16 +1,17 @@
 # Ansible Role: aci-model
-
 A comprehensive Ansible role to model and deploy Cisco ACI fabrics
 
 
 ## Requirements
-
 This role requires the **aci_rest** module and a standard set of ACI modules from Ansible v2.4.
 
+## Installation
+
+### Install the aci filter plugin
 In order to work with the provided ACI topology, a custom Jinja2 filter (*aci_listify*) is needed.
 You need to configure your Ansible to find this Jinja2 filter. There are two ways to do this:
 
- 1. Configure Ansible so it looks for the custom filter plugin:
+ 1. Configure Ansible so it looks for the custom aci filter plugin:
 
       ```ini
       filter_plugin = /home/ansible/datacenter.aci-model/plugins/filter
@@ -20,9 +21,14 @@ You need to configure your Ansible to find this Jinja2 filter. There are two way
 
 Because of its general usefulness, we are looking into making this *aci_listify* filter more genericand part of the default Ansible filters.
 
+## Using the example playbooks
+Before you can use the example playbooks, you need to ensure two things:
 
-## Role variables
+### Configure your APIC host and credentials
+Look inside the example inventory and provide the needed information.
+Only the first APIC is being use by the playbook, so you don't need more than one.
 
+#### Role variables
 The role accepts various variables, including:
 
 - apic_host
@@ -31,6 +37,14 @@ The role accepts various variables, including:
 - apic_use_proxy (defaults to false)
 - apic_validate_certs (defaults to true)
 
+### Ensure the playbook can find your datacenter.aci-model role
+If you installed the role from Galaxy, you should be fine.
+
+If you cloned it from Github, ensure you cloned it to a directory named datacenter.aci-model.
+Otherwise the playbook will not find the role with name "datacenter.aci-model".
+
+## Included example
+### Example inventory
 The following is an example of a topology defined in your inventory you can use with this role:
 
 ```yaml
@@ -82,14 +96,13 @@ The following is an example of a topology defined in your inventory you can use 
 ```
 A more comprehensive example is available from: [example-inventory.yaml](example-inventory.yaml)
 
-
-## Example playbook
+### Example playbook
 
 ```yaml
 - hosts: *apic1
   gather_facts: no
   roles:
-  - role: aci-model
+  - role: datacenter.aci-model
     aci_model_data: '{{ aci_topology }}'
 ```
 
