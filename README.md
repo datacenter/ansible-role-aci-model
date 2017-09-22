@@ -36,7 +36,7 @@ You need to configure your Ansible to find this Jinja2 filter. There are two way
 
  2. Copy the filter plugin (*plugins/filter/aci.py*) into your designated filter plugin directory
 
-Because of its general usefulness, we are looking into making this *aci_listify* filter more genericand part of the default Ansible filters.
+Because of its general usefulness, we are looking into making this *aci_listify* filter more generic and make it part of the default Ansible filters.
 
 
 ## Using the example playbook
@@ -51,6 +51,7 @@ The role accepts various variables, including:
 - apic_host
 - apic_username (defaults to 'admin')
 - apic_password
+
 - apic_use_proxy (defaults to false)
 - apic_validate_certs (defaults to true)
 
