@@ -10,25 +10,24 @@ def listify(d, *keys):
 def listify_worker(d, keys, depth, result, cache, prefix):
     prefix += keys[depth] + '_'
 
-    for item in d[keys[depth]]:
-        cache_work = cache.copy()
-        if isinstance(item, dict):
-            for k,v in item.iteritems():
-                if not isinstance(v, dict) and not isinstance(v, list):
-                    cache_key = prefix + k
-                    cache_value = v
-                    cache_work[cache_key] = cache_value
-
-            if len(keys)-1 == depth :
-                result.append(cache_work)
-            else:
+    if keys[depth] in d:
+        for item in d[keys[depth]]:
+            cache_work = cache.copy()
+            if isinstance(item, dict):
                 for k,v in item.iteritems():
-                    if k == keys[depth+1]:
-                        if isinstance(v, dict) or isinstance(v, list):
-                            result = listify_worker({k:v}, keys, depth+1, result, cache_work, prefix)
+                    if not isinstance(v, dict) and not isinstance(v, list):
+                        cache_key = prefix + k
+                        cache_value = v
+                        cache_work[cache_key] = cache_value
 
+                if len(keys)-1 == depth :
+                    result.append(cache_work)
+                else:
+                    for k,v in item.iteritems():
+                        if k == keys[depth+1]:
+                            if isinstance(v, dict) or isinstance(v, list):
+                                result = listify_worker({k:v}, keys, depth+1, result, cache_work, prefix)
     return result
-
 
 class FilterModule(object):
     ''' Ansible core jinja2 filters '''
