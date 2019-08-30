@@ -1,6 +1,6 @@
 ---
 # This taskbook is exactly indentical to the YAML version, but using the native JSON payload.
-# The aci_rest module simply sends tje JSON payload directly to the APIC.
+# The aci_rest module simply sends the JSON payload directly to the APIC.
 
 # Using JSON as input is convenient as the payload can be copy&pasted from the GUI.
 
