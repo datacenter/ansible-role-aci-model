@@ -14,7 +14,7 @@ def listify_worker(d, keys, depth, result, cache, prefix):
         for item in d[keys[depth]]:
             cache_work = cache.copy()
             if isinstance(item, dict):
-                for k,v in item.iteritems():
+                for k,v in item.items():
                     if not isinstance(v, dict) and not isinstance(v, list):
                         cache_key = prefix + k
                         cache_value = v
@@ -23,7 +23,7 @@ def listify_worker(d, keys, depth, result, cache, prefix):
                 if len(keys)-1 == depth :
                     result.append(cache_work)
                 else:
-                    for k,v in item.iteritems():
+                    for k,v in item.items():
                         if k == keys[depth+1]:
                             if isinstance(v, dict) or isinstance(v, list):
                                 result = listify_worker({k:v}, keys, depth+1, result, cache_work, prefix)
