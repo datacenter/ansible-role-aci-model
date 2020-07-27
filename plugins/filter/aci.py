@@ -50,8 +50,8 @@ Args:
                     else:
                         # Lookup next key in the dict below.
                         nextkey = keys[depth+1]
-                        if nextkey in item and (isinstance(item[nextkey], dict) or isinstance(item[nextkey], list)):
-                            # It's useless to test for dict because the recursion will end in the next level.
+                        if nextkey in item and isinstance(item[nextkey], list):
+                            # It's useless to test for dict here because the recursion will end in the next level.
                             result = listify_worker({nextkey: item[nextkey]}, keys, depth+1, result, cache_work, prefix)
         return result
         # End of inner function
