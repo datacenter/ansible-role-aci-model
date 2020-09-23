@@ -1,4 +1,4 @@
-# Copyright: (c) 2020, Tilmann Boess <tilmann@boess.hr.de>
+# Copyright: (c) 2020, Tilmann Boess <tilmann.boess@hr.de>
 # Based on: (c) 2017, Ramses Smeyers <rsmeyers@cisco.com>
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
