@@ -42,22 +42,33 @@ Args:
         Prefix = ''.join((Prefix, Keys[Depth], '_'))
       # For each named node in the tree, count one level up.
       Depth +=1
+      # List of attributes that contain flat values (neither dict nor list).
+      FlatAttribList = []
       for SubItem in Item:
         if not isinstance(Item[SubItem], dict) and not isinstance(Item[SubItem], list):
-          # Path end: key/value pair.
+          # Flat key/value pair.
           # Cache holds the pathed keys (build from the key list).
           # Each recursive call gets its own copy.
           Cache['%s%s' %(Prefix, SubItem)] = Item[SubItem]
-        elif Depth < len(Keys) and SubItem == Keys[Depth]:
-          # Neither at end of key list nor at end of path.
-          Worker(Item[SubItem], Keys, Depth, Result, Cache.copy(), Prefix)
+          # All key/value pairs are evaluated before dicts and lists.
+          # Otherwise, some attributes might not be transferred from the
+          # cache to the result list.
+          FlatAttribList.append(SubItem)
+      for SubItem in FlatAttribList:
+        # Delete flat key/value pairs (already evalutated in prevoius loop)
+        # so that remaining Items are either list or dict.
+        del Item[SubItem]
+      for SubItem in Item:
+        if Depth < len(Keys) and SubItem == Keys[Depth]:
+          # Not at end of key list and Item matches current key.
+          Result = Worker(Item[SubItem], Keys, Depth, Result, Cache.copy(), Prefix)
       if Depth == len(Keys):
-        # Path length exhausted, do not look deeper.
+        # At end of key list: transfer cache to result list.
         Result.append(Cache)
     elif isinstance(Item, list):
       # For lists, look deeper without increasing the depth.
       for ListItem in Item:
-        Worker(ListItem, Keys, Depth, Result, Cache.copy(), Prefix)
+        Result = Worker(ListItem, Keys, Depth, Result, Cache.copy(), Prefix)
     return Result
     # End of inner function
 
