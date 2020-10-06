@@ -11,6 +11,7 @@ alternating dicts and lists down your tree."""
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
+import re
 
 def Lister(Dict, *Keys):
   """Extract key/value data from ACI-model object tree.
@@ -20,18 +21,39 @@ contains at least 1 key/value pair.
 Along this path all key/value pairs for all keys given are fetched.
 Args:
 - Dict (dict): object tree.
-- * Keys: key names to look for in 'Dict'  in hierarchical order (the keys must
+- *Keys: key names to look for in 'Dict'  in hierarchical order (the keys must
   form a path in the object tree).
+– You can append a regex to each key (separated by an =–sign). Only keys
+  whose name-attribute matches the regex will be included in the result.
+  If the regex is omitted, all keys will be included (backwards compatible).
+  Example:
+    "{{ aci_topology|aci_listify2('access_policy', 'interface_policy_profile=.+998', 'interface_selector') }}"
+  All paths in the output match interface policy profiles that end in «998».
+  E.g. interface selectors below a non-matching interface policy profile
+  will be suppressed from the output.
 Returns:
 - list of dicts (key/value-pairs); given keys are concatenated with '_' to form
   a single key. Example: ('tenant' , 'app' , 'epg') results in 'tenant_app_epg'.
 """
+  R_Value = re.compile('([^=]+)=(.+)')
+  # KeyList will be a copy of the initial list «Keys».
+  KeyList = []
+  # List of regex to match the name attributes.
+  RegexList = []
+  for K in Keys:
+    Match = R_Value.fullmatch(K)
+    if Match:
+      KeyList.append(Match.group(1))
+      RegexList.append(re.compile(Match.group(2)))
+    else:
+      KeyList.append(K)
+      RegexList.append(None)
 
-  def Worker(Item, Keys, Depth=-1, Result=[], Cache={}, Prefix=''):
+  def Worker(Item, KeyList, RegexList, Depth=-1, Result=[], Cache={}, Prefix=''):
     """Recursive inner function to encapsulate the internal arguments.
 Args:
 - Item: current object in tree for key search (depends on value of 'Depth').
-- Keys (list): list of keys.
+- KeyList (list): list of keys.
 - Depth (int): index (corresponding to depth in object tree) of key in key list.
 - Result (list): current result list of key/value-pairs.
 - Cache (dict): collects key/value pairs common for all items in result list.
@@ -39,7 +61,7 @@ Args:
 """
     if isinstance(Item, dict):
       if not Depth == -1:
-        Prefix = ''.join((Prefix, Keys[Depth], '_'))
+        Prefix = ''.join((Prefix, KeyList[Depth], '_'))
       # For each named node in the tree, count one level up.
       Depth +=1
       # List of attributes that contain flat values (neither dict nor list).
@@ -55,24 +77,27 @@ Args:
           # cache to the result list.
           FlatAttribList.append(SubItem)
       for SubItem in FlatAttribList:
-        # Delete flat key/value pairs (already evalutated in prevoius loop)
+        # Delete flat key/value pairs (already evalutated in previous loop)
         # so that remaining Items are either list or dict.
         del Item[SubItem]
       for SubItem in Item:
-        if Depth < len(Keys) and SubItem == Keys[Depth]:
+        if Depth < len(KeyList) and SubItem == KeyList[Depth]:
           # Not at end of key list and Item matches current key.
-          Result = Worker(Item[SubItem], Keys, Depth, Result, Cache.copy(), Prefix)
-      if Depth == len(Keys):
+          Result = Worker(Item[SubItem], KeyList, RegexList, Depth, Result, Cache.copy(), Prefix)
+      if Depth == len(KeyList):
         # At end of key list: transfer cache to result list.
         Result.append(Cache)
     elif isinstance(Item, list):
       # For lists, look deeper without increasing the depth.
       for ListItem in Item:
-        Result = Worker(ListItem, Keys, Depth, Result, Cache.copy(), Prefix)
+        if RegexList[Depth] != None and Depth < len(RegexList) and isinstance(ListItem, dict) and not RegexList[Depth].fullmatch(ListItem.get('name', '')):
+          # If regex was specified and the name attribute does not match, do not follow the path but continue with next item.
+          continue
+        Result = Worker(ListItem, KeyList, RegexList, Depth, Result, Cache.copy(), Prefix)
     return Result
     # End of inner function
 
-  return Worker(Dict, Keys)
+  return Worker(Dict, KeyList, RegexList)
 
 class FilterModule(object):
   """Ansible core jinja2 filters"""
