@@ -54,6 +54,7 @@ Returns:
 Args:
 - Item: current object in tree for key search (depends on value of 'Depth').
 - KeyList (list): list of keys.
+– RegexList (list): list of regex objects.
 - Depth (int): index (corresponding to depth in object tree) of key in key list.
 - Result (list): current result list of key/value-pairs.
 - Cache (dict): collects key/value pairs common for all items in result list.
@@ -91,7 +92,9 @@ Args:
       # For lists, look deeper without increasing the depth.
       for ListItem in Item:
         if RegexList[Depth] != None and Depth < len(RegexList) and isinstance(ListItem, dict) and not RegexList[Depth].fullmatch(ListItem.get('name', '')):
-          # If regex was specified and the name attribute does not match, do not follow the path but continue with next item.
+          # If regex was specified and the name attribute does not match, do
+          # not follow the path but continue with next item. Also a
+          # non-existing name attribute is interpreted as non-match.
           continue
         Result = Worker(ListItem, KeyList, RegexList, Depth, Result, Cache.copy(), Prefix)
     return Result
