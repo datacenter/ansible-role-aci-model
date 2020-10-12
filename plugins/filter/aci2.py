@@ -21,7 +21,7 @@ contains at least 1 key/value pair.
 Along this path all key/value pairs for all keys given are fetched.
 Args:
 - Dict (dict): object tree.
-- *Keys: key names to look for in 'Dict'  in hierarchical order (the keys must
+- *Keys: key names to look for in 'Dict' in hierarchical order (the keys must
   form a path in the object tree).
 – You can append a regex to each key (separated by an =–sign). Only keys
   whose name-attribute matches the regex will be included in the result.
@@ -35,6 +35,10 @@ Returns:
 - list of dicts (key/value-pairs); given keys are concatenated with '_' to form
   a single key. Example: ('tenant' , 'app' , 'epg') results in 'tenant_app_epg'.
 """
+  # Name of the attribute used as «Name». We use uppercase «Name» to
+  # let it appear 1st if YAML/JSON files are sorted by keys.
+  # Change it to your liking.
+  NameAttr = 'Name'
   R_Value = re.compile('([^=]+)=(.+)')
   # KeyList will be a copy of the initial list «Keys».
   KeyList = []
@@ -91,10 +95,10 @@ Args:
     elif isinstance(Item, list):
       # For lists, look deeper without increasing the depth.
       for ListItem in Item:
-        if RegexList[Depth] != None and Depth < len(RegexList) and isinstance(ListItem, dict) and not RegexList[Depth].fullmatch(ListItem.get('name', '')):
-          # If regex was specified and the name attribute does not match, do
+        if RegexList[Depth] != None and Depth < len(RegexList) and isinstance(ListItem, dict) and not RegexList[Depth].fullmatch(ListItem.get(NameAttr, '')):
+          # If regex was specified and the NameAttr does not match, do
           # not follow the path but continue with next item. Also a
-          # non-existing name attribute is interpreted as non-match.
+          # non-existing NameAttr attribute is interpreted as non-match.
           continue
         Result = Worker(ListItem, KeyList, RegexList, Depth, Result, Cache.copy(), Prefix)
     return Result
