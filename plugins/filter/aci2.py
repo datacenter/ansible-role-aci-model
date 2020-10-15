@@ -95,7 +95,7 @@ Args:
     elif isinstance(Item, list):
       # For lists, look deeper without increasing the depth.
       for ListItem in Item:
-        if RegexList[Depth] != None and Depth < len(RegexList) and isinstance(ListItem, dict) and not RegexList[Depth].fullmatch(ListItem.get(NameAttr, '')):
+        if RegexList[Depth] != None and Depth < len(RegexList) and isinstance(ListItem, dict) and not RegexList[Depth].fullmatch(str(ListItem.get(NameAttr, ''))):
           # If regex was specified and the NameAttr does not match, do
           # not follow the path but continue with next item. Also a
           # non-existing NameAttr attribute is interpreted as non-match.
