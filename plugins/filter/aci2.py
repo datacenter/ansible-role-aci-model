@@ -1,4 +1,4 @@
-# Copyright: (c) 2020, Tilmann Boess <tilmann.boess@hr.de>
+# Copyright: (c) 2020-2021, Tilmann Boess <tilmann.boess@hr.de>
 # Based on: (c) 2017, Ramses Smeyers <rsmeyers@cisco.com>
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -26,11 +26,53 @@ Args:
 – You can append a regex to each key (separated by an =–sign). Only keys
   whose name-attribute matches the regex will be included in the result.
   If the regex is omitted, all keys will be included (backwards compatible).
-  Example:
-    "{{ aci_topology|aci_listify2('access_policy', 'interface_policy_profile=.+998', 'interface_selector') }}"
-  All paths in the output match interface policy profiles that end in «998».
-  E.g. interface selectors below a non-matching interface policy profile
-  will be suppressed from the output.
+  Examples:
+  1. Simple static specification:
+      loop: "{{ aci_topology|aci_listify2('access_policy', 'interface_policy_profile=.+998', 'interface_selector') }}"
+    All paths in the output match interface policy profiles that end in «998».
+    E.g. interface selectors below a non-matching interface policy profile
+    will be suppressed from the output.
+  2. Dynamic specification:
+      loop: "{{ LEAFID_ROOT|aci_listify2(leaf_match, port_match, 'type=switch_port') }}"
+      vars:
+        leaf_match: "leafid={{ outer.leafid_Name }}"
+        port_match: "port={{ outer.leafid_port_Name }}"
+    Here the regex's for the leafid and the port are determined at runtime in an
+    outer task. The outer task sets the dict 'outer' and this dict is referenced
+    here.
+    'LEAFID_ROOT' is the dict in which to look for the following hierarchy:
+      leafid:
+      - Name: 101
+        port:
+        - Name: 1
+          type:
+          - Name: switch_port
+      - Name: 101
+        port:
+        - Name: 2
+          type:
+          - Name: port_channel
+    (and so on for all leaf-switches and ports)
+    This matches only if:
+    * leafid matches the leafid delivered by the outer task.
+    * port matches the port delivered by the outer task.
+    * The port shall be configured as a simple switchport (not a channel).
+    The outer task could be:
+      - name: "example outer task"
+        include_tasks:
+          file: inner.yaml
+        loop: "{{ portlist }}"
+        loop_control:
+          loop_var: outer
+        vars:
+          portlist:
+          - leafid.Name: '10.'
+            leafid_port_Name: '1'
+          - leafid.Name: '203'
+            leafid_port_Name: '42'
+    The dict 'portlist' need not be specified here as task variable.
+    You can provide it as extra var on the command line and thus specify
+    dynamically which ports shall be configured.
 Returns:
 - list of dicts (key/value-pairs); given keys are concatenated with '_' to form
   a single key. Example: ('tenant' , 'app' , 'epg') results in 'tenant_app_epg'.

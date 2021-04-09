@@ -1,7 +1,7 @@
 # Ansible Role: aci-model
-A comprehensive Ansible role to model and deploy Cisco ACI fabrics.
+A comprehensive Ansible role to model and deploy Cisco ACI fabrics and a custom Ansible filter for structured data.
 
-This role provides an abstraction layer that is convenient to use. By providing your required configuration (a structured dataset) in your inventory this role will perform the needed actions to ensure that configuration is deployd on your ACI infrastructure.
+This role provides an abstraction layer that is convenient to use. By providing your required configuration (a structured dataset) in your inventory this role will perform the needed actions to ensure that configuration is deployed on your ACI infrastructure.
 
 Using this role you can easily set up demo environment, maintain a lab or use it as the basis for your in-house ACI infrastructure. It can help you understand how ACI works while prototyping and testing. No prior Ansible or ACI knowledge is required to get started.
 
@@ -38,6 +38,14 @@ You need to configure your Ansible to find this Jinja2 filter. There are two way
 
 Because of its general usefulness, we are looking into making this *aci_listify* filter more generic and make it part of the default Ansible filters.
 
+#### The alternative filter plugin
+The alternative filter *aci_listify2* (file: *plugins/filter/aci2.py*) is installed in the same manner as the original filter. It provides the following enhancements:
+
+* Data structure need not be an alternating tree of dict/list. The tree may contain lists/dicts in any order.
+* You can append a regex to each key so that only key values that match the regex will appear in the output.
+* This is documented in the file *plugins/filter/aci2.py* itself.
+
+The filter does not depend on this Ansible role. It can be used in any Ansible task to extract a list of items from a structured dict. For this purpose, it suffices to install the filter. You need neither the role nor the playbook or the example inventory.
 
 ## Using the example playbook
 
