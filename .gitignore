@@ -1,3 +1,8 @@
+# Apple Desktop Services Store
 .DS_Store
+# PyCharm IDE
+.idea
+# Vim swap files
+.*.swp
 *.pyc
 *.retry

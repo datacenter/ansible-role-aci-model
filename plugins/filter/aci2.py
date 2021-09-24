@@ -6,24 +6,25 @@
 """
 This is an alternative filter to the original 'aci_listify' in 'aci.py'.
 It is useful if your inventory data / variable definitions are not organized in
-alternating dicts and lists down your tree."""
+alternating dicts and lists down your tree.
+"""
 
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 import re
 
-def Lister(Dict, *Keys):
-  """Extract key/value data from ACI-model object tree.
+def lister(myDict, *myKeys):
+    """Extract key/value data from ACI-model object tree.
 The object tree may contain nested dicts and lists in any order.
 The keys must match dict names along a path in this tree down to a dict that
 contains at least 1 key/value pair.
 Along this path all key/value pairs for all keys given are fetched.
 Args:
-- Dict (dict): object tree.
-- *Keys: key names to look for in 'Dict' in hierarchical order (the keys must
+* myDict (dict): object tree.
+* *myKeys: key names to look for in 'myDict' in hierarchical order (the keys must
   form a path in the object tree).
-– You can append a regex to each key (separated by an =–sign). Only keys
+* You can append a regex to each key (separated by «=»). Only keys
   whose name-attribute matches the regex will be included in the result.
   If the regex is omitted, all keys will be included (backwards compatible).
   Examples:
@@ -74,82 +75,86 @@ Args:
     You can provide it as extra var on the command line and thus specify
     dynamically which ports shall be configured.
 Returns:
-- list of dicts (key/value-pairs); given keys are concatenated with '_' to form
+* list of dicts (key/value-pairs); given keys are concatenated with '_' to form
   a single key. Example: ('tenant' , 'app' , 'epg') results in 'tenant_app_epg'.
 """
-  # Name of the attribute used as «Name». We use uppercase «Name» to
-  # let it appear 1st if YAML/JSON files are sorted by keys.
-  # Change it to your liking.
-  NameAttr = 'Name'
-  R_Value = re.compile('([^=]+)=(.+)')
-  # KeyList will be a copy of the initial list «Keys».
-  KeyList = []
-  # List of regex to match the name attributes.
-  RegexList = []
-  for K in Keys:
-    Match = R_Value.fullmatch(K)
-    if Match:
-      KeyList.append(Match.group(1))
-      RegexList.append(re.compile(Match.group(2)))
-    else:
-      KeyList.append(K)
-      RegexList.append(None)
+    # Name of the attribute used as «Name». We use uppercase «Name» to
+    # let it appear 1st if YAML/JSON files are sorted by keys.
+    # Change it to your liking.
+    nameAttr = 'Name'
+    rValue = re.compile('([^=]+)=(.+)')
+    # keyList will be a copy of the initial list «myKeys».
+    keyList = []
+    # List of regex to match the name attributes.
+    regexList = []
+    for K in myKeys:
+        match = rValue.fullmatch(K)
+        if match:
+            keyList.append(match.group(1))
+            regexList.append(re.compile(match.group(2)))
+        else:
+            keyList.append(K)
+            regexList.append(None)
 
-  def Worker(Item, KeyList, RegexList, Depth=-1, Result=[], Cache={}, Prefix=''):
-    """Recursive inner function to encapsulate the internal arguments.
+    def worker(item, keyList, regexList, depth=-1, result=[], cache={}, prefix=''):
+        """Recursive inner function to encapsulate the internal arguments.
 Args:
-- Item: current object in tree for key search (depends on value of 'Depth').
-- KeyList (list): list of keys.
-– RegexList (list): list of regex objects.
-- Depth (int): index (corresponding to depth in object tree) of key in key list.
-- Result (list): current result list of key/value-pairs.
-- Cache (dict): collects key/value pairs common for all items in result list.
-- Prefix (str): current prefix for key list in result.
+* item: current object in tree for key search (depends on value of 'depth').
+* keyList (list): list of keys.
+* regexList (list): list of regex objects.
+* depth (int): index (corresponding to depth in object tree) of key in key list.
+* result (list): current result list of key/value-pairs.
+* cache (dict): collects key/value pairs common for all items in result list.
+* prefix (str): current prefix for key list in result.
 """
-    if isinstance(Item, dict):
-      if not Depth == -1:
-        Prefix = ''.join((Prefix, KeyList[Depth], '_'))
-      # For each named node in the tree, count one level up.
-      Depth +=1
-      # List of attributes that contain flat values (neither dict nor list).
-      FlatAttribList = []
-      for SubItem in Item:
-        if not isinstance(Item[SubItem], dict) and not isinstance(Item[SubItem], list):
-          # Flat key/value pair.
-          # Cache holds the pathed keys (build from the key list).
-          # Each recursive call gets its own copy.
-          Cache['%s%s' %(Prefix, SubItem)] = Item[SubItem]
-          # All key/value pairs are evaluated before dicts and lists.
-          # Otherwise, some attributes might not be transferred from the
-          # cache to the result list.
-          FlatAttribList.append(SubItem)
-      for SubItem in FlatAttribList:
-        # Delete flat key/value pairs (already evalutated in previous loop)
-        # so that remaining Items are either list or dict.
-        del Item[SubItem]
-      for SubItem in Item:
-        if Depth < len(KeyList) and SubItem == KeyList[Depth]:
-          # Not at end of key list and Item matches current key.
-          Result = Worker(Item[SubItem], KeyList, RegexList, Depth, Result, Cache.copy(), Prefix)
-      if Depth == len(KeyList):
-        # At end of key list: transfer cache to result list.
-        Result.append(Cache)
-    elif isinstance(Item, list):
-      # For lists, look deeper without increasing the depth.
-      for ListItem in Item:
-        if RegexList[Depth] != None and Depth < len(RegexList) and isinstance(ListItem, dict) and not RegexList[Depth].fullmatch(str(ListItem.get(NameAttr, ''))):
-          # If regex was specified and the NameAttr does not match, do
-          # not follow the path but continue with next item. Also a
-          # non-existing NameAttr attribute is interpreted as non-match.
-          continue
-        Result = Worker(ListItem, KeyList, RegexList, Depth, Result, Cache.copy(), Prefix)
-    return Result
-    # End of inner function
+        if isinstance(item, dict):
+            if not depth == -1:
+                prefix = ''.join((prefix, keyList[depth], '_'))
+            # For each named node in the tree, count one level up.
+            depth += 1
+            # List of attributes that contain flat values (neither dict nor list).
+            flatAttribList = []
+            for subItem in item:
+                if not isinstance(item[subItem], dict) and not isinstance(item[subItem], list):
+                    # Flat key/value pair.
+                    # cache holds the pathed keys (build from the key list).
+                    # Each recursive call gets its own copy.
+                    cache['%s%s' % (prefix, subItem)] = item[subItem]
+                    # All key/value pairs are evaluated before dicts and lists.
+                    # Otherwise, some attributes might not be transferred from the
+                    # cache to the result list.
+                    flatAttribList.append(subItem)
+            for subItem in flatAttribList:
+                # Delete flat key/value pairs (already evalutated in previous loop)
+                # so that remaining items are either list or dict.
+                del item[subItem]
+            for subItem in item:
+                if depth < len(keyList) and subItem == keyList[depth]:
+                    # Not at end of key list and item matches current key.
+                    result = worker(item[subItem], keyList, regexList, depth, result, cache.copy(), prefix)
+            if depth == len(keyList):
+                # At end of key list: transfer cache to result list.
+                result.append(cache)
+        elif isinstance(item, list):
+            # For lists, look deeper without increasing the depth.
+            for listItem in item:
+                if regexList[depth] is not None \
+                        and depth < len(regexList) \
+                        and isinstance(listItem, dict) \
+                        and not regexList[depth].fullmatch(str(listItem.get(nameAttr, ''))):
+                    # If regex was specified and the nameAttr does not match, do
+                    # not follow the path but continue with next item. Also a
+                    # non-existing nameAttr attribute is interpreted as non-match.
+                    continue
+                result = worker(listItem, keyList, regexList, depth, result, cache.copy(), prefix)
+        return result
+        # End of inner function
 
-  return Worker(Dict, KeyList, RegexList)
+    return worker(myDict, keyList, regexList)
+
 
 class FilterModule(object):
-  """Ansible core jinja2 filters"""
+    """Ansible core jinja2 filters"""
 
-  def filters(self):
-    return { 'aci_listify2': Lister }
+    def filters(self):
+        return {'aci_listify2': lister}
