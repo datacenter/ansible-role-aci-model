@@ -112,22 +112,15 @@ Args:
                 prefix = ''.join((prefix, keyList[depth], '_'))
             # For each named node in the tree, count one level up.
             depth += 1
-            # List of attributes that contain flat values (neither dict nor list).
-            flatAttribList = []
-            for subItem in item:
-                if not isinstance(item[subItem], dict) and not isinstance(item[subItem], list):
+            for subItem in list(item.keys()):
+                if not isinstance(item[subItem], (dict, list)):
                     # Flat key/value pair.
                     # cache holds the pathed keys (build from the key list).
                     # Each recursive call gets its own copy.
-                    cache['%s%s' % (prefix, subItem)] = item[subItem]
+                    cache['%s%s' % (prefix, subItem)] = item.pop(subItem)
                     # All key/value pairs are evaluated before dicts and lists.
                     # Otherwise, some attributes might not be transferred from the
                     # cache to the result list.
-                    flatAttribList.append(subItem)
-            for subItem in flatAttribList:
-                # Delete flat key/value pairs (already evalutated in previous loop)
-                # so that remaining items are either list or dict.
-                del item[subItem]
             for subItem in item:
                 if depth < len(keyList) and subItem == keyList[depth]:
                     # Not at end of key list and item matches current key.
