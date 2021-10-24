@@ -41,7 +41,7 @@ Because of its general usefulness, we are looking into making this *aci_listify*
 #### The alternative filter plugin
 The alternative filter *aci_listify2* (file: *plugins/filter/aci2.py*) is installed in the same manner as the original filter. It provides the following enhancements:
 
-* Data structure need not be an alternating tree of dict/list. The tree may contain lists/dicts in any order.
+* Instances of objects can be organized in lists (as in the original filter) or dicts (new).
 * You can append a regex to each key so that only key values that match the regex will appear in the output.
 * This is documented in the file *plugins/filter/aci2.py* itself.
 
