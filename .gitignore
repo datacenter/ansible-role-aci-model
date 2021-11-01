@@ -4,5 +4,9 @@
 .idea
 # Vim swap files
 .*.swp
+# Python
 *.pyc
+#
 *.retry
+# Visual Studio Code
+.vscode
