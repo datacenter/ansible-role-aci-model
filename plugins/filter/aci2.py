@@ -1,4 +1,4 @@
-# Copyright: (c) 2020-2021, Tilmann Boess <tilmann.boess@hr.de>
+# Copyright: (c) 2020-2022, Tilmann Boess <tilmann.boess@hr.de>
 # Based on: (c) 2017, Ramses Smeyers <rsmeyers@cisco.com>
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -88,8 +88,18 @@ __metaclass__ = type
 import re
 
 
-def lister(myDict, *myKeys):
-    """Extract key/value data from ACI-model object tree.
+def def_filter():
+    """Outer function that defines the filter and encapsulates initialization of variables.
+"""
+    # Name of the attribute used as «Name». We use uppercase «Name» to
+    # let it appear 1st if YAML/JSON files are sorted by keys.
+    # Change it to your liking.
+    nameAttr = 'Name'
+    # Regex to separate object and instance names.
+    rValue = re.compile('([^=]+)=(.*)')
+
+    def lister(myDict, *myKeys):
+        """Extract key/value data from ACI-model object tree.
 The keys must match dict names along a path in this tree down to a dict that
 contains at least 1 key/value pair.
 Along this path all key/value pairs for all keys given are fetched.
@@ -104,26 +114,21 @@ Returns:
 * list of dicts (key/value-pairs); given keys are concatenated with '_' to form
   a single key. Example: ('tenant' , 'app' , 'epg') results in 'tenant_app_epg'.
 """
-    # Name of the attribute used as «Name». We use uppercase «Name» to
-    # let it appear 1st if YAML/JSON files are sorted by keys.
-    # Change it to your liking.
-    nameAttr = 'Name'
-    rValue = re.compile('([^=]+)=(.*)')
-    # keyList will be a copy of the initial list «myKeys».
-    keyList = []
-    # List of regex to match the name attributes.
-    regexList = []
-    for K in myKeys:
-        match = rValue.fullmatch(K)
-        if match:
-            keyList.append(match.group(1))
-            regexList.append(re.compile(match.group(2)))
-        else:
-            keyList.append(K)
-            regexList.append(None)
+        # keyList will be a copy of the initial list «myKeys».
+        keyList = []
+        # List of regex to match the name attributes.
+        regexList = []
+        for K in myKeys:
+            match = rValue.fullmatch(K)
+            if match:
+                keyList.append(match.group(1))
+                regexList.append(re.compile(match.group(2)))
+            else:
+                keyList.append(K)
+                regexList.append(None)
 
-    def worker(itemList, depth, result, cache, prefix):
-        """Inner function for instance evaluation.
+        def worker(itemList, depth, result, cache, prefix):
+            """Inner function for instance evaluation.
 Args:
 * itemList (list): current instance list in tree (list of dicts, each item
   is an ACI object).
@@ -132,58 +137,63 @@ Args:
 * cache (dict): collects key/value pairs common for all items in result list.
 * prefix (str): current prefix for key list in result.
 """
-        for item in itemList:
-            # Save name attribute for later usage.
-            # If name attribute is missing, set to None.
-            name = str(item.get(nameAttr, None))
-            # cache holds the pathed keys (build from the key list).
-            # Each recursive call gets its own copy.
-            subcache = cache.copy()
-            for subItem in list(item.keys()):
-                if not isinstance(item[subItem], (dict, list)):
-                    # Flat key/value pair.
-                    subcache['%s%s' % (prefix, subItem)] = item.pop(subItem)
-                    # All key/value pairs are evaluated before dicts and lists.
-                    # Otherwise, some attributes might not be transferred from the
-                    # cache to the result list.
-            # Remaining subItem's are lists or dicts of sub-instances.
-            if regexList[depth] is not None and (name is None or not regexList[depth].fullmatch(name)):
-                # If regex was specified and the nameAttr does not match, do
-                # not follow the path but continue with next item. Also a
-                # non-existing nameAttr attribute is interpreted as non-match.
-                continue
-            result = finder(item, depth, result, subcache, prefix)
-        return result
+            for item in itemList:
+                # Save name attribute for later usage.
+                # If name attribute is missing, set to None.
+                name = str(item.get(nameAttr, None))
+                # cache holds the pathed keys (build from the key list).
+                # Each recursive call gets its own copy.
+                subcache = cache.copy()
+                for subItem in list(item.keys()):
+                    if not isinstance(item[subItem], (dict, list)):
+                        # Flat key/value pair.
+                        subcache['%s%s' % (prefix, subItem)] = item.pop(subItem)
+                        # All key/value pairs are evaluated before dicts and lists.
+                        # Otherwise, some attributes might not be transferred from the
+                        # cache to the result list.
+                # Remaining subItem's are lists or dicts of sub-instances.
+                if regexList[depth] is not None and (name is None or not regexList[depth].fullmatch(name)):
+                    # If regex was specified and the nameAttr does not match, do
+                    # not follow the path but continue with next item. Also a
+                    # non-existing nameAttr attribute is interpreted as non-match.
+                    continue
+                result = finder(item, depth, result, subcache, prefix)
+            return result
 
-    def finder(objDict, depth=-1, result=[], cache={}, prefix=''):
-        """Inner function for tree traversal.
+        def finder(objDict, depth=-1, result=[], cache={}, prefix=''):
+            """Inner function for tree traversal.
 * objDict (dict): current subtree, top key is name of an ACI object type.
 * depth (int): index (corresponding to depth in object tree) of key in key list.
 * result (list): current result list of key/value-pairs.
 * cache (dict): collects key/value pairs common for all items in result list.
 * prefix (str): current prefix for key list in result.
 """
-        depth += 1
-        if depth == len(keyList):
-            # At end of key list: transfer cache to result list.
-            result.append(cache)
-        else:
-            prefix = ''.join((prefix, keyList[depth], '_'))
-            # Check if object type is in tree at given depth.
-            if keyList[depth] in objDict:
-                # Prepare item list. ACI objects may be stored as list or dict.
-                if isinstance(objDict[keyList[depth]], dict):
-                    itemList = list(objDict[keyList[depth]].values())
-                else:
-                    itemList = objDict[keyList[depth]]
-                result = worker(itemList, depth, result, cache.copy(), prefix)
-        return result
+            depth += 1
+            if depth == len(keyList):
+                # At end of key list: transfer cache to result list.
+                result.append(cache)
+            else:
+                prefix = ''.join((prefix, keyList[depth], '_'))
+                # Check if object type is in tree at given depth.
+                if keyList[depth] in objDict:
+                    # Prepare item list. ACI objects may be stored as list or dict.
+                    if isinstance(objDict[keyList[depth]], dict):
+                        itemList = list(objDict[keyList[depth]].values())
+                    else:
+                        itemList = objDict[keyList[depth]]
+                    result = worker(itemList, depth, result, cache.copy(), prefix)
+            return result
 
-    return finder(myDict)
+        # End of function: lister
+        return finder(myDict)
+
+    # End of function: def_filter
+    return lister
 
 
 class FilterModule(object):
-    """Ansible core jinja2 filters"""
+    """Jinja2 filters for Ansible."""
 
     def filters(self):
-        return {'aci_listify2': lister}
+        """Name the filter: aci_listify2"""
+        return {'aci_listify2': def_filter()}
