@@ -147,11 +147,10 @@ Args:
                 for subItem in list(item.keys()):
                     if not isinstance(item[subItem], (dict, list)):
                         # Flat key/value pair.
-                        subcache['%s%s' % (prefix, subItem)] = item.pop(subItem)
+                        subcache['%s%s' % (prefix, subItem)] = item[subItem]
                         # All key/value pairs are evaluated before dicts and lists.
                         # Otherwise, some attributes might not be transferred from the
                         # cache to the result list.
-                # Remaining subItem's are lists or dicts of sub-instances.
                 if regexList[depth] is not None and (name is None or not regexList[depth].fullmatch(name)):
                     # If regex was specified and the nameAttr does not match, do
                     # not follow the path but continue with next item. Also a
@@ -177,10 +176,13 @@ Args:
                 # Check if object type is in tree at given depth.
                 if keyList[depth] in objDict:
                     # Prepare item list. ACI objects may be stored as list or dict.
-                    if isinstance(objDict[keyList[depth]], dict):
+                    if  isinstance(objDict[keyList[depth]], list):
+                        itemList = objDict[keyList[depth]]
+                    elif isinstance(objDict[keyList[depth]], dict):
                         itemList = list(objDict[keyList[depth]].values())
                     else:
-                        itemList = objDict[keyList[depth]]
+                        # Neither dict nor list – return to upper level.
+                        return result
                     result = worker(itemList, depth, result, cache.copy(), prefix)
             return result
 
