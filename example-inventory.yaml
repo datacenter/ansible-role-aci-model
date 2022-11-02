@@ -48,8 +48,8 @@ fabric01:
           - name: leaf_997_998
       - interface_policy_lldp:
         - name: LLDPon
-          receive_state: enabled
-          transmit_state: enabled
+          receive_state: on
+          transmit_state: on
       - interface_policy_port_channel:
         - name: LACPactive
           mode: active
