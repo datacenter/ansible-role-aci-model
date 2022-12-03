@@ -82,7 +82,7 @@ You can provide it as extra var on the command line and thus specify
 dynamically which ports shall be configured.
 """
 
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 import re
@@ -159,7 +159,7 @@ Args:
                 result = finder(item, depth, result, subcache, prefix)
             return result
 
-        def finder(objDict, depth=-1, result=[], cache={}, prefix=''):
+        def finder(objDict, depth=-1, result=None, cache=None, prefix=''):
             """Inner function for tree traversal.
 * objDict (dict): current subtree, top key is name of an ACI object type.
 * depth (int): index (corresponding to depth in object tree) of key in key list.
@@ -167,6 +167,10 @@ Args:
 * cache (dict): collects key/value pairs common for all items in result list.
 * prefix (str): current prefix for key list in result.
 """
+            if result is None:
+                result = []
+            if cache is None:
+                cache = {}
             depth += 1
             if depth == len(keyList):
                 # At end of key list: transfer cache to result list.
@@ -176,7 +180,7 @@ Args:
                 # Check if object type is in tree at given depth.
                 if keyList[depth] in objDict:
                     # Prepare item list. ACI objects may be stored as list or dict.
-                    if  isinstance(objDict[keyList[depth]], list):
+                    if isinstance(objDict[keyList[depth]], list):
                         itemList = objDict[keyList[depth]]
                     elif isinstance(objDict[keyList[depth]], dict):
                         itemList = list(objDict[keyList[depth]].values())
