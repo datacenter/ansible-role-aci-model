@@ -151,6 +151,13 @@ Args:
                         # All key/value pairs are evaluated before dicts and lists.
                         # Otherwise, some attributes might not be transferred from the
                         # cache to the result list.
+                    elif isinstance(item[subItem], list):
+                        # Support a list of scalars as attribute value.
+                        for listItem in item[subItem]:
+                            if isinstance(listItem, (dict, list)):
+                                break
+                        else:
+                            subcache['%s%s' % (prefix, subItem)] = item[subItem]
                 if regexList[depth] is not None and (name is None or not regexList[depth].fullmatch(name)):
                     # If regex was specified and the nameAttr does not match, do
                     # not follow the path but continue with next item. Also a
