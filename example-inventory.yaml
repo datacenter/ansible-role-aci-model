@@ -159,18 +159,28 @@ fabric01:
               type: phys
         bd:
         - name: app_bd
-          subnet: 
+          subnet:
           - name: 10.10.10.1
             mask: 24
             scope: private
           vrf: Customer01
         - name: web_bd
-          subnet: 
+          subnet:
           - name: 20.20.20.1
             mask: 24
             scope: public
           vrf: Customer01
-          l3out: 
+          l3out:
+          - name: l3out
+        - name: web_bd1
+          subnet:
+          - name: 20.20.21.1
+            mask: 24
+            scope:
+            - public
+            - shared
+          vrf: Customer01
+          l3out:
           - name: l3out
         vrf:
         - name: Customer01

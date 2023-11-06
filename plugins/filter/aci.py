@@ -1,6 +1,7 @@
-# Copyright: (c) 2017, Ramses Smeyers <rsmeyers@cisco.com>
-
+# Copyright: (c) 2020-2023, Tilmann Boess <tilmann.boess@hr.de>
+# Based on: (c) 2017, Ramses Smeyers <rsmeyers@cisco.com>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
@@ -41,9 +42,16 @@ Args:
                     cache_work = cache.copy()
                     for k, v in item.items():
                         # Two levels below: Loop thru the dict.
-                        if not isinstance(v, dict) and not isinstance(v, list):
+                        if not isinstance(v, (dict, list)):
                             # Key/value pair found: add value 'v' to cache for key 'k'.
                             cache_work[''.join((prefix, k))] = v
+                        elif isinstance(v, list):
+                            # Support a list of scalars as attribute value.
+                            for listItem in v:
+                                if isinstance(listItem, (dict, list)):
+                                    break
+                            else:
+                                cache_work[''.join((prefix, k))] = v
                     if len(keys)-1 == depth:
                         # Max. depth reached.
                         result.append(cache_work)
