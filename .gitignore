@@ -1,2 +1,12 @@
+# Apple Desktop Services Store
+.DS_Store
+# PyCharm IDE
+.idea
+# Vim swap files
+.*.swp
+# Python
 *.pyc
+#
 *.retry
+# Visual Studio Code
+.vscode
