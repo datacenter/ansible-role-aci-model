@@ -42,16 +42,9 @@ Args:
                     cache_work = cache.copy()
                     for k, v in item.items():
                         # Two levels below: Loop thru the dict.
-                        if not isinstance(v, (dict, list)):
-                            # Key/value pair found: add value 'v' to cache for key 'k'.
+                        if isinstance(v, (str, int, float, bool, bytes)) or isinstance(v, list) and all(isinstance(x, (str, int, float, bool, bytes)) for x in v):
+                            # Key/value found. Accept a scalar or a list of scalars as attribute value.
                             cache_work[''.join((prefix, k))] = v
-                        elif isinstance(v, list):
-                            # Support a list of scalars as attribute value.
-                            for listItem in v:
-                                if isinstance(listItem, (dict, list)):
-                                    break
-                            else:
-                                cache_work[''.join((prefix, k))] = v
                     if len(keys)-1 == depth:
                         # Max. depth reached.
                         result.append(cache_work)

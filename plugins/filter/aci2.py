@@ -1,4 +1,4 @@
-# Copyright: (c) 2020-2022, Tilmann Boess <tilmann.boess@hr.de>
+# Copyright: (c) 2020-2023, Tilmann Boess <tilmann.boess@hr.de>
 # Based on: (c) 2017, Ramses Smeyers <rsmeyers@cisco.com>
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -144,20 +144,13 @@ Args:
                 # cache holds the pathed keys (build from the key list).
                 # Each recursive call gets its own copy.
                 subcache = cache.copy()
-                for subItem in list(item.keys()):
-                    if not isinstance(item[subItem], (dict, list)):
-                        # Flat key/value pair.
-                        subcache['%s%s' % (prefix, subItem)] = item[subItem]
+                for subKey, subItem in list(item.items()):
+                    if isinstance(subItem, (str, int, float, bool, bytes)) or isinstance(subItem, list) and all(isinstance(x, (str, int, float, bool, bytes)) for x in subItem):
+                        # Key/value found. Accept a scalar or a list of scalars as attribute value.
+                        subcache['%s%s' % (prefix, subKey)] = subItem
                         # All key/value pairs are evaluated before dicts and lists.
                         # Otherwise, some attributes might not be transferred from the
                         # cache to the result list.
-                    elif isinstance(item[subItem], list):
-                        # Support a list of scalars as attribute value.
-                        for listItem in item[subItem]:
-                            if isinstance(listItem, (dict, list)):
-                                break
-                        else:
-                            subcache['%s%s' % (prefix, subItem)] = item[subItem]
                 if regexList[depth] is not None and (name is None or not regexList[depth].fullmatch(name)):
                     # If regex was specified and the nameAttr does not match, do
                     # not follow the path but continue with next item. Also a
